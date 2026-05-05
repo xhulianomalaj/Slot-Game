@@ -14,7 +14,12 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests/scenarios',
-  fullyParallel: true,
+  // Each test boots a full Pixi WebGL canvas. Running multiple workers in
+  // the same Chromium process exhausts GPU context limits and causes random
+  // boot-stage timeouts. 1 worker keeps contexts sequential; the suite still
+  // completes in ~2 minutes which is well within CI budget.
+  workers: 1,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-scenarios' }]],

@@ -5,3 +5,9 @@ dist
 .env
 .env.local
 coverage
+
+# Playwright output
+test-results-scenarios/
+test-results/
+playwright-report-scenarios/
+playwright-report/
