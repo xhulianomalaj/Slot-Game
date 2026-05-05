@@ -1,0 +1,60 @@
+[
+  {
+    "grid": [
+      ["cherry", "lemon", "orange"],
+      ["lemon", "orange", "plum"],
+      ["orange", "plum", "bell"],
+      ["plum", "bell", "bar"],
+      ["bell", "bar", "cherry"]
+    ],
+    "totalWin": 0,
+    "winlines": [],
+    "balance": 99
+  },
+  {
+    "grid": [
+      ["seven", "seven", "seven"],
+      ["seven", "seven", "seven"],
+      ["seven", "seven", "seven"],
+      ["seven", "seven", "seven"],
+      ["seven", "seven", "seven"]
+    ],
+    "totalWin": 50,
+    "winlines": [
+      {
+        "lineId": 1,
+        "symbolId": "seven",
+        "matchCount": 5,
+        "amount": 50,
+        "positions": [
+          { "reel": 0, "row": 0 },
+          { "reel": 1, "row": 0 },
+          { "reel": 2, "row": 0 },
+          { "reel": 3, "row": 0 },
+          { "reel": 4, "row": 0 }
+        ]
+      }
+    ],
+    "balance": 148
+  },
+  {
+    "grid": [
+      ["scatter", "lemon", "orange"],
+      ["cherry", "lemon", "plum"],
+      ["orange", "scatter", "bell"],
+      ["plum", "bell", "bar"],
+      ["scatter", "bar", "cherry"]
+    ],
+    "totalWin": 12,
+    "winlines": [
+      {
+        "lineId": 99,
+        "symbolId": "scatter",
+        "matchCount": 3,
+        "amount": 12,
+        "positions": [{ "reel": 0, "row": 0 }, { "reel": 2, "row": 1 }, { "reel": 4, "row": 0 }]
+      }
+    ],
+    "balance": 159
+  }
+]

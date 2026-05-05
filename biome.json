@@ -1,0 +1,136 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
+  "vcs": {
+    "enabled": false,
+    "clientKind": "git",
+    "useIgnoreFile": false
+  },
+  "files": {
+    "includes": [
+      "src/**",
+      "tests/**",
+      "vite.config.ts",
+      "vitest.config.ts",
+      "playwright.config.ts",
+      "!**/dist",
+      "!**/node_modules",
+      "!**/coverage",
+      "!**/.assetpack-cache"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 120,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noDescendingSpecificity": "off",
+        "noRestrictedGlobals": {
+          "level": "error",
+          "options": {
+            "deniedGlobals": {
+              "setTimeout": "Use Ticker.schedule() from @/infrastructure/timing — setTimeout does not pause with the app.",
+              "setInterval": "Use Ticker.every() from @/infrastructure/timing — setInterval leaks across scene teardown."
+            }
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["src/domain/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "pixi.js": "Domain is pure — no view dependencies.",
+                  "pixi-reels": "Domain is pure — no view dependencies.",
+                  "mobx": "Domain must not depend on state management."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "src/state/**/*.ts",
+        "src/flow/**/*.ts",
+        "src/container/**/*.ts",
+        "src/domain/**/*.ts",
+        "src/config/**/*.ts",
+        "src/utils/**/*.ts",
+        "src/ui/**/*.ts",
+        "src/ui/**/*.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "pixi-reels": "Only presenters/ and view/ may import pixi — keep the engine swappable.",
+                  "pixi.js": "Only presenters/ and view/ may import pixi — keep the engine swappable."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/infrastructure/timing.ts", "src/infrastructure/NetworkManager.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["tests/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off",
+            "noRestrictedGlobals": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0e1d21" />
+    <title>slotplate</title>
+    <style>
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        background: #0e1d21;
+        overflow: hidden;
+        overscroll-behavior: none;
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        color: #e7eef0;
+      }
+      body { position: fixed; inset: 0; }
+      #pixi { position: absolute; inset: 0; }
+      #hud { position: absolute; inset: 0; pointer-events: none; }
+
+      /* === slot:loader (inline critical) === */
+      #sp-loader {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; align-items: center; justify-content: center;
+        background: #0e1d21;
+        opacity: 1;
+        transition: opacity 360ms ease;
+      }
+      #sp-loader[data-done="1"] { opacity: 0; pointer-events: none; }
+      .sp-loader__version {
+        position: absolute; top: 12px; right: 14px;
+        font-size: 11px; letter-spacing: 0.04em;
+        color: rgba(231, 238, 240, 0.45);
+        font-variant-numeric: tabular-nums;
+      }
+      .sp-loader__logo {
+        width: min(38vw, 220px); aspect-ratio: 1 / 1;
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 22vh;
+      }
+      .sp-loader__logo img { width: 100%; height: 100%; object-fit: contain; }
+      .sp-loader__logo span {
+        font-size: clamp(36px, 7vw, 64px);
+        font-weight: 700; letter-spacing: 0.08em;
+        color: rgba(231, 238, 240, 0.85);
+      }
+      .sp-loader__bar {
+        position: absolute; left: 0; right: 0; bottom: 0;
+        height: 3px; background: rgba(231, 238, 240, 0.08);
+        overflow: hidden;
+      }
+      .sp-loader__fill {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, #5eead4, #38bdf8);
+        transition: width 220ms ease;
+      }
+      .sp-loader__error {
+        position: absolute; left: 0; right: 0; bottom: 24px;
+        text-align: center; font-size: 12px; color: #fca5a5;
+        padding: 0 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="pixi"></div>
+    <div id="hud"></div>
+    <div id="sp-loader" role="status" aria-live="polite" aria-label="Loading">
+      <span class="sp-loader__version" data-sp-version></span>
+      <div class="sp-loader__logo">
+        <img src="/intro/studio-logo.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" />
+        <span style="display:none">SLOTPLATE</span>
+      </div>
+      <div class="sp-loader__bar"><div class="sp-loader__fill"></div></div>
+      <div class="sp-loader__error" hidden></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

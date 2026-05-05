@@ -1,0 +1,95 @@
+# Slotplate scenarios CI — runs the Playwright behavior suite on every push
+# and PR. The artifacts (HTML report, traces, bridge-dump.json files) are
+# uploaded so a triage engineer can replay any failure without rerunning
+# the suite locally.
+#
+# What runs:
+#   1. typecheck
+#   2. unit + flow tests (vitest)
+#   3. scenario suite (playwright)
+#   4. catalog freshness check
+#
+# What's uploaded on failure:
+#   - playwright-report-scenarios/  HTML report
+#   - test-results-scenarios/        traces, screenshots, attachments
+#
+# To skip the scenario job for docs-only PRs, gate on changed paths in a
+# follow-up — for now we run everything on every change.
+
+name: scenarios
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            playwright-${{ runner.os }}-
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit + flow tests
+        run: pnpm test
+
+      - name: Scenario tests
+        run: pnpm test:e2e
+
+      - name: Verify scenario catalog is up-to-date
+        # The catalog is auto-generated from spec titles. Anyone adding /
+        # renaming a scenario must also run `pnpm test:catalog`. CI confirms
+        # the committed file matches the generator's output.
+        run: |
+          pnpm test:catalog
+          if ! git diff --quiet -- tests/scenarios/CATALOG.md; then
+            echo "::error::tests/scenarios/CATALOG.md is stale. Run 'pnpm test:catalog' and commit."
+            git --no-pager diff -- tests/scenarios/CATALOG.md
+            exit 1
+          fi
+
+      - name: Upload Playwright report
+        if: ${{ failure() || success() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-scenarios
+          path: playwright-report-scenarios/
+          retention-days: 14
+
+      - name: Upload test results (traces, attachments)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-scenarios
+          path: test-results-scenarios/
+          retention-days: 14

@@ -1,0 +1,235 @@
+{
+  "app": {
+    "title": "slotplate"
+  },
+  "header": {
+    "title": "SLOTPLATE"
+  },
+  "splash": {
+    "tapToStart": "Tap to start"
+  },
+  "loader": {
+    "session": "Opening session",
+    "assets": "Loading assets",
+    "ready": "Ready",
+    "failed": "Load failed"
+  },
+  "hud": {
+    "balance": "Balance",
+    "win": "Win",
+    "bet": "Bet",
+    "spin": "Spin",
+    "stop": "Stop",
+    "speed": { "normal": "Normal", "turbo": "Turbo", "superTurbo": "Super" },
+    "sound": { "on": "Mute sound", "off": "Enable sound" },
+    "menu": "Open menu",
+    "info": "Game rules",
+    "autospin": { "start": "Autospin", "cancel": "Cancel autospin" },
+    "buyBonus": "Buy bonus",
+    "buyBonusTop": "BUY",
+    "buyBonusBottom": "BONUS",
+    "demoBalance": "Demo balance",
+    "demoBet": "Demo bet",
+    "bigWin": "BIG WIN"
+  },
+  "menu": {
+    "title": "Menu",
+    "close": "Close",
+    "on": "On",
+    "off": "Off",
+    "unlimited": "∞",
+    "tabs": {
+      "settings": "Settings",
+      "autoplay": "Autoplay",
+      "bet": "Bet",
+      "history": "History",
+      "responsible": "Limits",
+      "help": "Help"
+    },
+    "settings": {
+      "audio": "Audio",
+      "masterSound": "Master sound",
+      "music": "Background music",
+      "sfx": "Sound effects",
+      "ambient": "Ambient sounds",
+      "gameplay": "Gameplay",
+      "quickSpin": "Quick spin",
+      "quickSpinHint": "Shorter spin duration",
+      "introSkip": "Skip intro animation",
+      "spaceToSpin": "Space to spin",
+      "spaceToSpinHint": "Keyboard shortcut on desktop",
+      "haptics": "Haptic feedback",
+      "hapticsHint": "Vibration on mobile",
+      "display": "Display",
+      "graphics": "Graphics quality",
+      "graphicsHigh": "High",
+      "graphicsMedium": "Medium",
+      "graphicsLow": "Low",
+      "language": "Language"
+    },
+    "autoplay": {
+      "title": "Autoplay",
+      "rounds": "Number of rounds",
+      "stopIfWin": "Stop on any win",
+      "stopIfFeature": "Stop on bonus trigger",
+      "stopIfSingleWinAbove": "Stop on single win above",
+      "stopIfLossReaches": "Stop if loss reaches",
+      "stopIfBalanceBelow": "Stop if balance below",
+      "stopIfBalanceAbove": "Stop if balance above",
+      "resetOnEachSpin": "Reset limits on new session",
+      "start": "Start autoplay",
+      "cancel": "Cancel autoplay",
+      "leaveBlank": "Leave blank to disable"
+    },
+    "bet": {
+      "title": "Bet",
+      "intro": "Your current stake per spin.",
+      "current": "Current bet"
+    },
+    "history": {
+      "title": "Recent rounds",
+      "empty": "No rounds yet this session.",
+      "columns": {
+        "round": "#",
+        "stake": "Stake",
+        "win": "Win",
+        "net": "Net"
+      },
+      "sessionStats": "Session",
+      "rounds": "Rounds",
+      "totalStaked": "Total staked",
+      "totalWon": "Total won",
+      "net": "Net"
+    },
+    "responsible": {
+      "title": "Responsible gaming",
+      "intro": "Set limits to stay in control. These apply to this session only; for permanent limits contact your operator.",
+      "realityCheck": "Reality check",
+      "realityCheckHint": "Reminder interval while playing",
+      "realityCheckOff": "Off",
+      "sessionLimit": "Session time limit",
+      "sessionLimitHint": "Auto-close after this duration",
+      "lossLimit": "Session loss limit",
+      "lossLimitHint": "Lock betting when reached",
+      "deposit": "Deposit limit",
+      "depositHint": "Set a deposit limit with your operator",
+      "selfExclude": "Self-exclusion",
+      "selfExcludeHint": "Temporarily block yourself from playing",
+      "contactSupport": "Contact support",
+      "clickToOpen": "Open"
+    },
+    "help": {
+      "title": "Help & support",
+      "paytable": "View paytable",
+      "contact": "Contact support",
+      "faq": "FAQ",
+      "version": "Version",
+      "sessionId": "Session ID"
+    },
+    "settingsLegacy": {
+      "sound": "Sound effects",
+      "language": "Language",
+      "viewRules": "Game rules",
+      "viewRulesSub": "Paytable, paylines, features"
+    }
+  },
+  "rules": {
+    "title": "Game rules",
+    "sections": {
+      "how-to-play": "How to play",
+      "paytable": "Paytable",
+      "paylines": "Paylines",
+      "features": "Features"
+    },
+    "how": {
+      "heading": "How to play",
+      "subheading": "Spin the reels to win prizes.",
+      "steps": [
+        { "title": "Set your bet", "body": "Use the ± buttons to step through available bet sizes." },
+        {
+          "title": "Spin the reels",
+          "body": "Press the orange button to begin a round. Server returns the result; the reels play it back."
+        },
+        {
+          "title": "Win on paylines",
+          "body": "Matching symbols on an active payline from left to right pay according to the paytable."
+        },
+        {
+          "title": "Use speed modes",
+          "body": "Turbo and Super skip animations for faster play. Autospin loops rounds automatically."
+        }
+      ],
+      "tip": {
+        "title": "Tip",
+        "body": "Click the spin button again during a spin to slam-stop the reels and reveal your result immediately."
+      }
+    },
+    "paytable": {
+      "heading": "Payouts",
+      "intro": "Payouts shown as multipliers of your bet. Wins pay left-to-right on active paylines.",
+      "columns": { "symbol": "Symbol", "x2": "2×", "x3": "3×", "x4": "4×", "x5": "5×" },
+      "rows": [
+        { "symbol": "seven", "name": "Lucky Seven", "payouts": ["—", "50×", "200×", "1000×"] },
+        { "symbol": "wild", "name": "Wild", "payouts": ["—", "50×", "200×", "1000×"] },
+        { "symbol": "bar", "name": "Bar", "payouts": ["—", "30×", "100×", "400×"] },
+        { "symbol": "bell", "name": "Bell", "payouts": ["—", "20×", "60×", "200×"] },
+        { "symbol": "plum", "name": "Plum", "payouts": ["—", "10×", "30×", "80×"] },
+        { "symbol": "orange", "name": "Orange", "payouts": ["—", "10×", "30×", "80×"] },
+        { "symbol": "lemon", "name": "Lemon", "payouts": ["—", "5×", "20×", "50×"] },
+        { "symbol": "cherry", "name": "Cherry", "payouts": ["—", "5×", "20×", "50×"] }
+      ],
+      "notes": [
+        "All payouts are authoritative on the server; the table shown here is for reference only.",
+        "Only the highest win per active payline pays per spin.",
+        "Malfunction voids all pays and plays."
+      ]
+    },
+    "paylines": {
+      "heading": "Paylines",
+      "intro": "Your bet activates every payline. Matching symbols count from left to right starting on reel 1.",
+      "lines": [
+        { "label": "Middle row", "pattern": [1, 1, 1, 1, 1] },
+        { "label": "Top row", "pattern": [0, 0, 0, 0, 0] },
+        { "label": "Bottom row", "pattern": [2, 2, 2, 2, 2] },
+        { "label": "V shape", "pattern": [0, 1, 2, 1, 0] },
+        { "label": "Inverted V", "pattern": [2, 1, 0, 1, 2] },
+        { "label": "Zigzag up", "pattern": [1, 0, 0, 0, 1] },
+        { "label": "Zigzag down", "pattern": [1, 2, 2, 2, 1] },
+        { "label": "Arrow right", "pattern": [0, 0, 1, 2, 2] },
+        { "label": "Arrow left", "pattern": [2, 2, 1, 0, 0] },
+        { "label": "Wave", "pattern": [1, 0, 1, 2, 1] }
+      ]
+    },
+    "features": {
+      "heading": "Features",
+      "blocks": [
+        {
+          "icon": "wild",
+          "title": "Wild",
+          "body": "The Wild substitutes for any regular symbol to complete a winning payline. It pays at the Seven rate when it lands in 3-of-a-kind or more."
+        },
+        {
+          "icon": "scatter",
+          "title": "Scatter",
+          "body": "Scatters pay anywhere on the reels and are not bound to paylines. Collect enough on a single spin to trigger the bonus round."
+        },
+        {
+          "icon": "bonus",
+          "title": "Anticipation",
+          "body": "When the server anticipates a big payoff, specific reels slow down before landing. Watch the reels for the tell — the feel is the same as on the casino floor."
+        }
+      ],
+      "specs": {
+        "heading": "Specifications",
+        "rows": [
+          { "key": "RTP", "value": "96.00%" },
+          { "key": "Volatility", "value": "Medium" },
+          { "key": "Reels", "value": "5 × 3" },
+          { "key": "Paylines", "value": "10" },
+          { "key": "Min / max bet", "value": "$0.20 – $100.00" },
+          { "key": "Max win", "value": "1000× bet" }
+        ]
+      }
+    }
+  }
+}

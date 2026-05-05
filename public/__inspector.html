@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>🧪 Slotplate Inspector</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #0a1518;
+        color: #e7eef0;
+        font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      body { display: flex; flex-direction: column; }
+      header {
+        padding: 8px 10px;
+        background: rgba(231, 238, 240, 0.05);
+        border-bottom: 1px solid rgba(231, 238, 240, 0.08);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .title { font-weight: 600; letter-spacing: 0.04em; }
+      .pill {
+        background: rgba(94, 234, 212, 0.18);
+        color: #5eead4;
+        padding: 1px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+      }
+      .pill--err { background: rgba(252, 165, 165, 0.18); color: #fca5a5; }
+      .pill--warn { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+      .spacer { flex: 1; }
+      .age {
+        color: rgba(231, 238, 240, 0.55);
+        font-size: 10px;
+      }
+
+      nav {
+        display: flex;
+        gap: 1px;
+        padding: 6px 6px 0;
+        background: rgba(231, 238, 240, 0.06);
+      }
+      nav button {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: rgba(231, 238, 240, 0.55);
+        padding: 6px 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font: inherit;
+        font-size: 10px;
+        border-radius: 4px 4px 0 0;
+      }
+      nav button.is-active { background: #0a1518; color: #e7eef0; }
+
+      main { padding: 10px; overflow: auto; flex: 1; }
+
+      table { width: 100%; border-collapse: collapse; }
+      th, td {
+        padding: 4px 8px;
+        text-align: left;
+        border-bottom: 1px solid rgba(231, 238, 240, 0.06);
+        white-space: nowrap;
+      }
+      th { color: rgba(231, 238, 240, 0.55); font-weight: 500; }
+
+      .actions { display: flex; flex-direction: column; gap: 4px; }
+      .actions button {
+        background: rgba(56, 189, 248, 0.1);
+        color: #5eead4;
+        border: 1px solid rgba(94, 234, 212, 0.18);
+        border-radius: 4px;
+        padding: 6px 10px;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+      .actions button:hover { background: rgba(94, 234, 212, 0.2); color: #fff; }
+      .actions hr { border: 0; border-top: 1px solid rgba(231, 238, 240, 0.06); margin: 4px 0; }
+
+      .row {
+        display: flex;
+        gap: 6px;
+        padding: 4px 0;
+        border-bottom: 1px solid rgba(231, 238, 240, 0.04);
+        align-items: center;
+      }
+      .row.is-rejected { color: #fca5a5; }
+      .badge {
+        background: rgba(231, 238, 240, 0.08);
+        padding: 1px 5px;
+        border-radius: 3px;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .muted { color: rgba(231, 238, 240, 0.55); }
+      .link {
+        background: none;
+        border: none;
+        color: #5eead4;
+        cursor: pointer;
+        font: inherit;
+        padding: 0;
+        text-decoration: underline dotted;
+      }
+
+      .empty {
+        padding: 30px;
+        text-align: center;
+        color: rgba(231, 238, 240, 0.5);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        background: #5eead4;
+        color: #0a1518;
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-align: center;
+        animation: fade 1.4s ease;
+      }
+      @keyframes fade {
+        0%, 100% { opacity: 0; }
+        10%, 85% { opacity: 1; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <span class="title">🧪 Inspector</span>
+      <span class="pill" id="test-id">…</span>
+      <span class="pill" id="conn">disconnected</span>
+      <span class="spacer"></span>
+      <span class="age muted" id="last-update">never</span>
+    </header>
+    <nav id="tabs"></nav>
+    <main id="body">
+      <div class="empty">Connecting to game tab…</div>
+    </main>
+    <script type="module">
+      // Self-contained popout. No build step — served as-is from /public.
+      // Talks the InspectorChannel protocol over BroadcastChannel.
+
+      const CHANNEL_NAME = 'slotplate-inspector';
+      const TABS = ['state', 'queue', 'a11y', 'history', 'transitions', 'rec', 'snap'];
+      const SNAP_KEY = '__slotplate_snapshots__';
+
+      const params = new URLSearchParams(location.search);
+      const expectedTestId = params.get('test');
+      document.getElementById('test-id').textContent = expectedTestId ?? '—';
+
+      const channel = new BroadcastChannel(CHANNEL_NAME);
+      const pending = new Map(); // id -> { resolve, reject }
+      let nextCmdId = 1;
+
+      let lastDump = null;
+      let lastUpdateAt = 0;
+      let connected = false;
+      let tab = 'state';
+
+      function setConn(state, label, kind = '') {
+        connected = state;
+        const el = document.getElementById('conn');
+        el.textContent = label;
+        el.className = `pill ${kind}`;
+      }
+
+      function ageLabel() {
+        if (!lastUpdateAt) return 'never';
+        const ms = Date.now() - lastUpdateAt;
+        if (ms < 1000) return `${ms}ms ago`;
+        return `${(ms / 1000).toFixed(1)}s ago`;
+      }
+
+      // Heartbeat watchdog: if we haven't heard from the game tab in 1.5s,
+      // mark disconnected so the user knows.
+      setInterval(() => {
+        document.getElementById('last-update').textContent = ageLabel();
+        if (connected && Date.now() - lastUpdateAt > 1500) {
+          setConn(false, 'stale', 'pill--warn');
+        }
+      }, 250);
+
+      channel.addEventListener('message', (e) => {
+        const msg = e.data;
+        if (!msg || typeof msg !== 'object') return;
+        switch (msg.type) {
+          case 'ack':
+            setConn(true, `connected · v${msg.version}`, '');
+            if (expectedTestId && msg.testId && msg.testId !== expectedTestId) {
+              setConn(true, `wrong tab (${msg.testId})`, 'pill--warn');
+            }
+            break;
+          case 'state':
+            lastDump = msg.dump;
+            lastUpdateAt = Date.now();
+            connected = true;
+            render();
+            break;
+          case 'reply': {
+            const p = pending.get(msg.id);
+            if (!p) return;
+            pending.delete(msg.id);
+            if (msg.error) p.reject(new Error(msg.error));
+            else p.resolve(msg.result);
+            break;
+          }
+        }
+      });
+
+      function rpc(method, args = []) {
+        const id = String(nextCmdId++);
+        return new Promise((resolve, reject) => {
+          pending.set(id, { resolve, reject });
+          channel.postMessage({ type: 'cmd', id, method, args });
+          setTimeout(() => {
+            if (pending.has(id)) {
+              pending.delete(id);
+              reject(new Error(`rpc ${method} timed out`));
+            }
+          }, 5000);
+        });
+      }
+
+      // Tab bar
+      const navEl = document.getElementById('tabs');
+      navEl.innerHTML = TABS.map((id) => `<button data-tab="${id}">${id}</button>`).join('');
+      navEl.addEventListener('click', (e) => {
+        const t = e.target.closest('button')?.dataset.tab;
+        if (t) {
+          tab = t;
+          render();
+        }
+      });
+
+      const NEUTRAL_GRID = [
+        ['cherry','lemon','orange'],['lemon','orange','plum'],['orange','plum','bell'],
+        ['plum','bell','bar'],['bell','bar','cherry'],
+      ];
+      const SEVENS = [['seven','seven','seven'],['seven','seven','seven'],['seven','seven','seven'],['seven','seven','seven'],['seven','seven','seven']];
+
+      function notify(msg) {
+        let toast = document.querySelector('.toast');
+        if (toast) toast.remove();
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1400);
+      }
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      }
+
+      function render() {
+        // Tab active state
+        for (const btn of navEl.querySelectorAll('button')) {
+          btn.classList.toggle('is-active', btn.dataset.tab === tab);
+        }
+        const body = document.getElementById('body');
+        if (!lastDump) {
+          body.innerHTML = '<div class="empty">Waiting for game tab. Make sure the game is open in another tab with <code>?test=&lt;id&gt;</code>.</div>';
+          return;
+        }
+
+        if (tab === 'state') {
+          const rows = Object.entries(lastDump.state)
+            .map(([k, v]) => `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(v ?? '')}</td></tr>`)
+            .join('');
+          body.innerHTML = `<table>${rows}</table>`;
+        } else if (tab === 'queue') {
+          body.innerHTML = `
+            <div class="actions">
+              <button data-cmd="queueLoss">queue loss</button>
+              <button data-cmd="queueWin50">queue win 50</button>
+              <button data-cmd="queueWin250">queue big win 250</button>
+              <button data-cmd="queueError">queue error</button>
+              <hr />
+              <button data-cmd="spin">spin once</button>
+              <button data-cmd="autospin10">autospin x10</button>
+              <button data-cmd="stopAutospin">stop autospin</button>
+              <hr />
+              <button data-cmd="offline">offline</button>
+              <button data-cmd="online">online</button>
+              <button data-cmd="recover">recover</button>
+              <hr />
+              <button data-cmd="lowBalance">simulate $0 wallet</button>
+              <button data-cmd="reset100">reset wallet $100</button>
+              <button data-cmd="toggleSound">toggle sound</button>
+              <hr />
+              <button data-cmd="copyDump">copy bridge dump → clipboard</button>
+            </div>
+          `;
+        } else if (tab === 'a11y') {
+          const rows = (lastDump.pixiTree || [])
+            .map((n) => `
+              <tr>
+                <td><button class="link" data-click="${escapeHtml(n.label)}">${escapeHtml(n.label)}</button></td>
+                <td>${Math.round(n.x)}</td><td>${Math.round(n.y)}</td>
+                <td>${Math.round(n.width)}</td><td>${Math.round(n.height)}</td>
+                <td>${n.visible ? '✓' : '·'}</td>
+              </tr>
+            `).join('');
+          body.innerHTML = `
+            <table>
+              <thead><tr><th>label</th><th>x</th><th>y</th><th>w</th><th>h</th><th>visible</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        } else if (tab === 'history') {
+          const rows = (lastDump.networkHistory || []).slice(-12).reverse().map((h) => `
+            <div class="row ${h.outcome === 'rejected' ? 'is-rejected' : ''}">
+              <span class="badge">${escapeHtml(h.kind)}</span>
+              <span class="badge">${escapeHtml(h.outcome)}</span>
+              ${h.kind === 'spin' ? `<span>bet=${h.request?.bet ?? '?'} win=${h.response?.totalWin ?? '?'}</span>` : ''}
+              ${h.error ? `<span style="color:#fca5a5">${escapeHtml(h.error.message ?? '')}</span>` : ''}
+            </div>
+          `).join('');
+          body.innerHTML = rows || '<div class="empty">No network calls yet.</div>';
+        } else if (tab === 'transitions') {
+          const rows = (lastDump.fsmTransitions || []).slice(-20).reverse().map((t) => `
+            <div class="row">
+              <span class="badge">${escapeHtml(t.to)}</span>
+              <span>${t.at}ms</span>
+              ${t.prevDurationMs !== null ? `<span class="muted">+${t.prevDurationMs}ms</span>` : ''}
+            </div>
+          `).join('');
+          body.innerHTML = rows || '<div class="empty">No transitions yet.</div>';
+        } else if (tab === 'rec') {
+          const rec = lastDump.recording || [];
+          const isRec = rec.length > 0 || (lastDump.state && lastDump.state._isRecording);
+          const recRows = rec.slice(-30).map((a) => `
+            <tr>
+              <td class="muted">+${a.t}ms</td>
+              <td>${escapeHtml(a.method)}</td>
+              <td class="muted">${escapeHtml(JSON.stringify(a.args).slice(0, 40))}</td>
+            </tr>
+          `).join('');
+          body.innerHTML = `
+            <div class="actions">
+              <button data-cmd="recStart">● start recording</button>
+              <button data-cmd="recStop">⏹ stop recording</button>
+              <button data-cmd="recCopy"${rec.length === 0 ? ' disabled' : ''}>copy as .spec.ts → clipboard</button>
+            </div>
+            <hr style="border:0;border-top:1px solid rgba(231,238,240,.06);margin:8px 0;" />
+            ${rec.length === 0
+              ? '<div class="empty">Press ● to start. Every queue/spin/click in this tab OR the embedded inspector is captured.</div>'
+              : `<table><thead><tr><th>t</th><th>method</th><th>args</th></tr></thead><tbody>${recRows}</tbody></table>`}
+          `;
+        } else if (tab === 'snap') {
+          const snaps = JSON.parse(localStorage.getItem(SNAP_KEY) ?? '[]');
+          const grid = snaps.slice().reverse().map((s) => `
+            <a href="${s.dataUrl}" target="_blank" rel="noopener" title="${escapeHtml(s.label)} · ${new Date(s.takenAt).toLocaleTimeString()}" style="position:relative;display:block;border:1px solid rgba(231,238,240,.1);border-radius:4px;overflow:hidden;background:#000;">
+              <img src="${s.dataUrl}" style="display:block;width:100%;height:auto;" />
+              <span style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,.7);color:#5eead4;font-size:9px;padding:1px 4px;border-radius:2px;">${escapeHtml(s.label)}</span>
+            </a>
+          `).join('');
+          body.innerHTML = `
+            <div class="actions">
+              <button data-cmd="snapTake">📸 capture canvas</button>
+              <button data-cmd="snapClear"${snaps.length === 0 ? ' disabled' : ''}>clear all</button>
+            </div>
+            <hr style="border:0;border-top:1px solid rgba(231,238,240,.06);margin:8px 0;" />
+            ${snaps.length === 0
+              ? '<div class="empty">Captures stored in localStorage (up to 10).</div>'
+              : `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;">${grid}</div>`}
+          `;
+        }
+      }
+
+      // Action handlers
+      document.body.addEventListener('click', async (e) => {
+        const cmdBtn = e.target.closest('[data-cmd]');
+        if (cmdBtn) {
+          const cmd = cmdBtn.dataset.cmd;
+          try {
+            switch (cmd) {
+              case 'queueLoss': await rpc('queueLoss', [NEUTRAL_GRID]); notify('queued: loss'); break;
+              case 'queueWin50': await rpc('queueWin', [SEVENS, 50]); notify('queued: win 50'); break;
+              case 'queueWin250': await rpc('queueWin', [SEVENS, 250]); notify('queued: big win 250'); break;
+              case 'queueError': await rpc('queueError', ['inspector triggered error']); notify('queued: error'); break;
+              case 'spin': rpc('spin').catch(() => {}); notify('spinning…'); break;
+              case 'autospin10': await rpc('startAutospin', [10]); notify('autospin 10'); break;
+              case 'stopAutospin': await rpc('stopAutospin'); notify('autospin stopped'); break;
+              case 'offline': await rpc('simulateOffline'); notify('offline'); break;
+              case 'online': await rpc('simulateOnline'); notify('online'); break;
+              case 'recover': await rpc('recoverFromError'); notify('recovered'); break;
+              case 'lowBalance': await rpc('simulateLowBalance', [0]); notify('balance set to 0'); break;
+              case 'reset100': await rpc('resetNetwork', [100]); notify('reset to $100'); break;
+              case 'toggleSound': await rpc('toggleSound'); notify('sound toggled'); break;
+              case 'copyDump': {
+                const dump = await rpc('dumpAll');
+                try {
+                  await navigator.clipboard.writeText(JSON.stringify(dump, null, 2));
+                  notify('bridge dump copied');
+                } catch {
+                  console.log('[inspector] dump:', dump);
+                  notify('clipboard blocked — see console');
+                }
+                break;
+              }
+              case 'recStart': await rpc('startRecording'); notify('recording…'); break;
+              case 'recStop': await rpc('stopRecording'); notify('stopped'); break;
+              case 'recCopy': {
+                const spec = await rpc('formatAsSpec', [`recorded ${new Date().toLocaleTimeString()}`]);
+                try {
+                  await navigator.clipboard.writeText(spec);
+                  notify('spec copied — paste into a .spec.ts');
+                } catch {
+                  console.log('[inspector] spec:\n' + spec);
+                  notify('clipboard blocked — see console');
+                }
+                break;
+              }
+              case 'snapTake': {
+                const dataUrl = await rpc('snapshotCanvas');
+                if (!dataUrl) { notify('canvas not ready'); break; }
+                const list = JSON.parse(localStorage.getItem(SNAP_KEY) ?? '[]');
+                list.push({
+                  id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  testId: lastDump?.testId ?? null,
+                  takenAt: Date.now(),
+                  dataUrl,
+                  label: lastDump?.state?.phase ?? 'unknown',
+                });
+                localStorage.setItem(SNAP_KEY, JSON.stringify(list.slice(-10)));
+                render();
+                notify('snapshot saved');
+                break;
+              }
+              case 'snapClear':
+                localStorage.removeItem(SNAP_KEY);
+                render();
+                notify('snapshots cleared');
+                break;
+            }
+          } catch (err) {
+            notify(`error: ${err.message ?? err}`);
+          }
+          return;
+        }
+        const labelBtn = e.target.closest('[data-click]');
+        if (labelBtn) {
+          try {
+            await rpc('clickPixi', [labelBtn.dataset.click]);
+            notify(`clicked ${labelBtn.dataset.click}`);
+          } catch (err) {
+            notify(`error: ${err.message ?? err}`);
+          }
+        }
+      });
+
+      // Wave hello.
+      channel.postMessage({ type: 'hello' });
+      window.addEventListener('beforeunload', () => {
+        try { channel.postMessage({ type: 'goodbye' }); } catch {}
+        channel.close();
+      });
+    </script>
+  </body>
+</html>
