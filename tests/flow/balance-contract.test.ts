@@ -29,6 +29,7 @@ function setup(spinResponse: { grid: string[][]; totalWin: number; winlines: unk
     startSpin: vi.fn().mockResolvedValue(undefined),
     stopWithResult: vi.fn().mockResolvedValue(undefined),
     setAnticipation: vi.fn(),
+    setSpeedMode: vi.fn(),
     forceStop: vi.fn(),
     showWin: vi.fn(),
     clearWin: vi.fn(),

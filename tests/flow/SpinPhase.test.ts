@@ -12,7 +12,7 @@ describe('SpinPhase', () => {
     const stores = new RootStore();
     stores.balance.setBet(1);
 
-    const reels = { startSpin: vi.fn().mockResolvedValue(undefined) };
+    const reels = { startSpin: vi.fn().mockResolvedValue(undefined), setSpeedMode: vi.fn() };
     const network = {
       spin: vi.fn().mockResolvedValue({
         grid: [['cherry', 'lemon', 'bar']],
