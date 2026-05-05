@@ -22,6 +22,9 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // 30s default is too tight for the 100-roundtrip perf test on slow CI runners.
+  // The 10s performance assertion inside the test still catches real regressions.
+  timeout: 90_000,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report-scenarios' }]],
   outputDir: 'test-results-scenarios',
   use: {
