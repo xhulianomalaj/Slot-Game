@@ -6,7 +6,7 @@
 // falls back to programmatic placeholders if any texture is missing.
 
 import { Application, type Texture } from 'pixi.js';
-import { ReelSetBuilder } from 'pixi-reels';
+import { ReelSetBuilder, SpeedPresets } from 'pixi-reels';
 import { GAME } from '@/config/gameConfig';
 import { THEME } from '@/config/theme';
 import { syncGsapToPixi } from '@/infrastructure/timing';
@@ -103,6 +103,9 @@ export class MainScene implements Disposable {
           registry.register(id, FixedSpriteSymbol, { textures, anchor: { x: 0, y: 0 } });
         }
       })
+      .speed('normal', SpeedPresets.NORMAL)
+      .speed('turbo', SpeedPresets.TURBO)
+      .speed('superTurbo', SpeedPresets.SUPER_TURBO)
       .ticker(this.app.ticker)
       .build();
 

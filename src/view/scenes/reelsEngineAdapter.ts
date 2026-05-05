@@ -6,6 +6,7 @@
 //
 //   - spin() / setResult(grid) — drives a round
 //   - setAnticipation(reels)   — per-reel teaser hook
+//   - setSpeedMode(mode)       — Normal / Turbo / Super Turbo
 //   - spotlight(cells)         — win display
 //
 // When pixi-reels ships v0.2+ with additional APIs you want to expose,
@@ -14,7 +15,15 @@
 import type { ReelSet, SymbolPosition } from 'pixi-reels';
 import type { Grid } from '@/domain/types';
 import type { ReelsEngine } from '@/presenters/ReelsPresenter';
+import type { SpeedMode } from '@/state/UIStore';
 import type { Disposable } from '@/utils/Disposable';
+
+/** Maps UIStore SpeedMode to the pixi-reels SpeedPresets profile names. */
+const SPEED_NAME: Record<SpeedMode, string> = {
+  normal: 'normal',
+  turbo: 'turbo',
+  superTurbo: 'superTurbo',
+};
 
 export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   let spinPromise: Promise<unknown> | null = null;
@@ -34,6 +43,9 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
     },
     setAnticipation(reels: number[]) {
       if (reels.length > 0) reelSet.setAnticipation(reels);
+    },
+    setSpeedMode(mode: SpeedMode) {
+      reelSet.setSpeed(SPEED_NAME[mode]);
     },
     forceStop() {
       reelSet.skip();

@@ -4,6 +4,7 @@ import { useStores } from '@/ui/hooks/useStores';
 import { BuyBonus } from './BuyBonus';
 import { IconButton } from './IconButton';
 import { IconMinus, IconPlus, IconRepeat } from './Icons';
+import { SpeedPill } from './SpeedPill';
 import { SpinButton } from './SpinButton';
 
 // Hacksaw-style control cluster:
@@ -49,6 +50,7 @@ export const BottomBar = observer(() => {
       </div>
 
       <div class="bottom-col-right">
+        <SpeedPill />
         <IconButton
           ariaLabel={ui.isAutospinning ? t('hud.autospin.cancel') : t('hud.autospin.start')}
           active={ui.isAutospinning}

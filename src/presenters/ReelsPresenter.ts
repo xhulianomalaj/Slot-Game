@@ -5,6 +5,7 @@
 // pixi-reels calls. Rules live in flow/phases/ or domain/.
 
 import type { Grid, Winline } from '@/domain/types';
+import type { SpeedMode } from '@/state/UIStore';
 import type { Disposable } from '@/utils/Disposable';
 
 // NOTE: this is a minimal interface. When you wire real pixi-reels,
@@ -14,6 +15,7 @@ export interface ReelsEngine {
   spin(): Promise<void>;
   setResult(grid: Grid): Promise<void>;
   setAnticipation(reels: number[]): void;
+  setSpeedMode(mode: SpeedMode): void;
   forceStop(): void;
   spotlight(cells: Array<{ reel: number; row: number }>): void;
   clearSpotlight(): void;
@@ -33,6 +35,10 @@ export class ReelsPresenter implements Disposable {
 
   setAnticipation(reels: number[]): void {
     this.engine.setAnticipation(reels);
+  }
+
+  setSpeedMode(mode: SpeedMode): void {
+    this.engine.setSpeedMode(mode);
   }
 
   forceStop(): void {

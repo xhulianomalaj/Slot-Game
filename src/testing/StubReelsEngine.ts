@@ -32,6 +32,9 @@ export class StubReelsEngine implements ReelsEngine {
   setAnticipation(reels: number[]): void {
     this.lastAnticipation = reels.slice();
   }
+  setSpeedMode(): void {
+    /* no-op */
+  }
   forceStop(): void {
     /* no-op */
   }

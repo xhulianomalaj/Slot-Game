@@ -12,6 +12,7 @@ export class SpinPhase implements Phase {
     ctx.stores.ui.setSpinning(true);
     ctx.stores.data.clear();
 
+    ctx.reels.setSpeedMode(ctx.stores.ui.speed);
     ctx.reels.startSpin();
 
     const response = await ctx.network.spin({ bet: ctx.stores.balance.bet });
