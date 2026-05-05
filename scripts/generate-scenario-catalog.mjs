@@ -52,8 +52,6 @@ function render(entries) {
     '',
     'Every Playwright behavior scenario in this repo, listed by file. Run them all with `pnpm test:e2e`. Open the [testing guide](../../docs/TESTING.md) for the full bridge API.',
     '',
-    `Generated: ${new Date().toISOString()}`,
-    '',
     `**${entries.length}** spec files · **${entries.reduce((a, e) => a + e.tests.length, 0)}** scenarios`,
     '',
     '---',

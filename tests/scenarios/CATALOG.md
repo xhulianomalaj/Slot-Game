@@ -3,8 +3,6 @@
 
 Every Playwright behavior scenario in this repo, listed by file. Run them all with `pnpm test:e2e`. Open the [testing guide](../../docs/TESTING.md) for the full bridge API.
 
-Generated: 2026-05-05T20:56:26.355Z
-
 **11** spec files · **34** scenarios
 
 ---
