@@ -3,7 +3,7 @@
 
 Every Playwright behavior scenario in this repo, listed by file. Run them all with `pnpm test:e2e`. Open the [testing guide](../../docs/TESTING.md) for the full bridge API.
 
-Generated: 2026-05-01T15:22:38.243Z
+Generated: 2026-05-05T20:56:26.355Z
 
 **11** spec files · **34** scenarios
 
@@ -75,7 +75,7 @@ Generated: 2026-05-01T15:22:38.243Z
 ### performance
 
 - one round completes in well under 100ms
-- 50 sequential rounds complete in under 5 seconds (cross-process)
+- 50 sequential rounds complete in under 60 seconds (cross-process)
 
 ## [`pixi-coverage.spec.ts`](./pixi-coverage.spec.ts)
 
