@@ -4,7 +4,7 @@
 
 A fully-featured browser-based slot game built from the ground up as a personal portfolio project. The game is currently **under active development** and will be publicly hosted in the future so anyone can play it directly in their browser — no download required.
 
-> **Status:** In development — core gameplay, HUD, animations, and test infrastructure are complete. UI polish, sound, and live hosting are in progress.
+> **Status:** In development — core gameplay, HUD, animations, and test infrastructure are complete. Ongoing work includes expanding the mock server with richer response scenarios, refining existing animations, and adding new visual effects. UI polish, sound, and live hosting are also in progress.
 
 ---
 
@@ -136,4 +136,12 @@ The end-to-end suite uses an **in-page test bridge** that scripts server respons
 
 ## License
 
-This project is for portfolio purposes. All rights reserved.
+This project is published for **viewing and study purposes only**.
+
+- You may read, run locally, and learn from the code.
+- You may **not** copy, redistribute, sublicense, or use any part of it in a commercial product.
+- You may **not** publish derivative works without written permission.
+
+See the [LICENSE](LICENSE) file for the full terms.
+
+© 2026. All rights reserved.
