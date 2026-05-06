@@ -5,21 +5,23 @@
 // ReelsPresenter. Loads real symbol art from public/assets/symbols/*.png;
 // falls back to programmatic placeholders if any texture is missing.
 
-import { Application, Assets, type Texture } from 'pixi.js';
-import { ReelSetBuilder, SpeedPresets } from 'pixi-reels';
-import { GAME } from '@/config/gameConfig';
-import { THEME } from '@/config/theme';
-import { syncGsapToPixi } from '@/infrastructure/timing';
-import type { ReelsEngine } from '@/presenters/ReelsPresenter';
-import type { Disposable } from '@/utils/Disposable';
-import { BackgroundLayer } from '@/view/scenes/BackgroundLayer';
-import { ReelsFrame, resizeObject } from '@/view/smart';
-import { FixedSpriteSymbol } from '@/view/symbols/FixedSpriteSymbol';
-import { createPlaceholderTextures } from './placeholderTextures';
-import { adaptReelSet } from './reelsEngineAdapter';
-import { loadSymbolTextures } from './symbolTextures';
+import { Application, Assets, Graphics, type Texture } from "pixi.js";
+import { ReelSetBuilder, SpeedPresets } from "pixi-reels";
+import { GAME } from "@/config/gameConfig";
+import { THEME } from "@/config/theme";
+import { syncGsapToPixi } from "@/infrastructure/timing";
+import type { ReelsEngine } from "@/presenters/ReelsPresenter";
+import type { Disposable } from "@/utils/Disposable";
+import { BackgroundLayer } from "@/view/scenes/BackgroundLayer";
+import { ReelsFrame, resizeObject } from "@/view/smart";
+import { FixedSpriteSymbol } from "@/view/symbols/FixedSpriteSymbol";
+import { createPlaceholderTextures } from "./placeholderTextures";
+import { adaptReelSet } from "./reelsEngineAdapter";
+import { loadSymbolTextures } from "./symbolTextures";
 
 const CELL_SIZE = 140;
+const SYMBOL_GAP = 8; // must match .symbolGap() below
+const PANEL_PADDING = 50; // must match panelPadding in ReelsFrame config
 
 export class MainScene implements Disposable {
   readonly app: Application;
@@ -54,7 +56,9 @@ export class MainScene implements Disposable {
     // Dev-only handles so the background can be tweaked from the browser console.
     // Stripped from production by the `import.meta.env.DEV` guard.
     if (import.meta.env.DEV) {
-      const w = globalThis as unknown as { __SLOTPLATE?: { app: Application; bg: BackgroundLayer } };
+      const w = globalThis as unknown as {
+        __SLOTPLATE?: { app: Application; bg: BackgroundLayer };
+      };
       w.__SLOTPLATE = { app: this.app, bg: this.background };
     }
 
@@ -62,8 +66,12 @@ export class MainScene implements Disposable {
       columns: GAME.columns,
       rows: GAME.rows,
       cellSize: CELL_SIZE,
-      hudTop: 160,
-      hudBottom: 240,
+      gapX: 8,
+      gapY: 8,
+      panelPadding: PANEL_PADDING,
+      hudTop: 200,
+      hudBottom: 280,
+      offsetY: -15,
     });
     this.app.stage.addChild(this.reelsFrame);
   }
@@ -80,40 +88,80 @@ export class MainScene implements Disposable {
     try {
       this.textures = await loadSymbolTextures(GAME.symbolIds);
     } catch (err) {
-      console.warn('[MainScene] symbol textures failed to load, falling back to placeholders:', err);
+      console.warn(
+        "[MainScene] symbol textures failed to load, falling back to placeholders:",
+        err,
+      );
       this.textures = null;
     }
     try {
       await bgPromise;
     } catch (err) {
-      console.warn('[MainScene] background texture failed to load, falling back to clearColor:', err);
+      console.warn(
+        "[MainScene] background texture failed to load, falling back to clearColor:",
+        err,
+      );
     }
     try {
-      this.reelPanelTexture = await Assets.load<Texture>('reel-frame.png');
+      this.reelPanelTexture = await Assets.load<Texture>("reel-frame.png");
     } catch (err) {
-      console.warn('[MainScene] reel-frame texture failed to load, panel will be skipped:', err);
+      console.warn(
+        "[MainScene] reel-frame texture failed to load, panel will be skipped:",
+        err,
+      );
     }
   }
 
   createReelsEngine(): ReelsEngine {
-    const textures = this.textures ?? createPlaceholderTextures(this.app, GAME.symbolIds, CELL_SIZE);
+    const textures =
+      this.textures ??
+      createPlaceholderTextures(this.app, GAME.symbolIds, CELL_SIZE);
 
     // pixi-reels canonical wiring — fluent builder from the README.
     const reelSet = new ReelSetBuilder()
       .reels(GAME.columns)
       .visibleSymbols(GAME.rows)
       .symbolSize(CELL_SIZE, CELL_SIZE)
-      .symbolGap(8, 8)
+      .symbolGap(SYMBOL_GAP, SYMBOL_GAP)
       .symbols((registry) => {
         for (const id of GAME.symbolIds) {
-          registry.register(id, FixedSpriteSymbol, { textures, anchor: { x: 0, y: 0 } });
+          registry.register(id, FixedSpriteSymbol, {
+            textures,
+            anchor: { x: 0, y: 0 },
+          });
         }
       })
-      .speed('normal', SpeedPresets.NORMAL)
-      .speed('turbo', SpeedPresets.TURBO)
-      .speed('superTurbo', SpeedPresets.SUPER_TURBO)
+      .speed("normal", SpeedPresets.NORMAL)
+      .speed("turbo", SpeedPresets.TURBO)
+      .speed("superTurbo", SpeedPresets.SUPER_TURBO)
       .ticker(this.app.ticker)
       .build();
+
+    // Expand the engine's scroll mask and dim overlay to cover the full panel
+    // background area (panelPadding on every side beyond the symbol grid).
+    // Both are accessed via pixi-reels public API — no private hacks needed.
+    const rw = GAME.columns * CELL_SIZE + (GAME.columns - 1) * SYMBOL_GAP;
+    const rh = GAME.rows * CELL_SIZE + (GAME.rows - 1) * SYMBOL_GAP;
+    const vp = reelSet.viewport;
+    // maskedContainer.mask is the scroll-clip Graphics (public via maskedContainer).
+    const scrollMask = vp.maskedContainer.mask as unknown as Graphics;
+    scrollMask.clear();
+    // Expand only horizontally so the left/right panel edges are covered.
+    // Do NOT expand vertically — buffer symbols sit just outside the top/bottom
+    // and would become visible if we grew the mask upward or downward.
+    scrollMask
+      .rect(-PANEL_PADDING, -22, rw + PANEL_PADDING * 2, rh + 30)
+      .fill({ color: 0xffffff });
+    // dimOverlay can expand in all directions (it's just a colour overlay, not a clip).
+    vp.dimOverlay.clear();
+    vp.dimOverlay
+      .rect(
+        -PANEL_PADDING,
+        -PANEL_PADDING,
+        rw + PANEL_PADDING * 2,
+        rh + PANEL_PADDING * 2,
+      )
+      .fill({ color: 0x000000, alpha: 0.5 });
 
     this.reelsFrame?.setContent(reelSet);
     if (this.reelPanelTexture) this.reelsFrame?.setPanel(this.reelPanelTexture);

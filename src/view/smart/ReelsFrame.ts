@@ -17,11 +17,18 @@ export interface ReelsFrameConfig {
   rows: number;
   /** Cell size in design pixels. Used to compute the reelset bounding box. */
   cellSize: number;
+  /** Gap between symbols in design pixels (must match ReelSetBuilder.symbolGap). */
+  gapX?: number;
+  gapY?: number;
+  /** Extra padding added to each side of the panel sprite (design pixels). */
+  panelPadding?: number;
   /** Optional HUD safe areas (design pixels) to subtract from the reel area. */
   hudTop?: number;
   hudBottom?: number;
   hudLeft?: number;
   hudRight?: number;
+  /** Vertical offset in design pixels (negative = up, positive = down). */
+  offsetY?: number;
 }
 
 const DEFAULT_DESIGN = {
@@ -43,6 +50,7 @@ export class ReelsFrame extends SmartContainer {
         fitContain: true,
         halign: 'center',
         valign: 'center',
+        offsetY: cfg.offsetY ?? 0,
       },
       portraitData: {
         safeWidth: DEFAULT_DESIGN.portrait.width,
@@ -50,6 +58,7 @@ export class ReelsFrame extends SmartContainer {
         fitContain: true,
         halign: 'center',
         valign: 'center',
+        offsetY: cfg.offsetY ?? 0,
       },
     };
     super(options);
@@ -79,24 +88,29 @@ export class ReelsFrame extends SmartContainer {
 
   protected override onResize(): void {
     const { columns, rows, cellSize } = this.cfg;
-    const reelW = columns * cellSize;
-    const reelH = rows * cellSize;
+    const gapX = this.cfg.gapX ?? 0;
+    const gapY = this.cfg.gapY ?? 0;
+    const pad  = this.cfg.panelPadding ?? 0;
+
+    // Include inter-symbol gaps in the bounding box so panel and content align.
+    const reelW = columns * cellSize + (columns - 1) * gapX;
+    const reelH = rows    * cellSize + (rows    - 1) * gapY;
     const safeW = this.layout.safeWidth;
     const safeH = this.layout.safeHeight;
 
     // Reserve space for HUD top/bottom bars. Center the reels in the remaining box.
-    const hudTop = this.cfg.hudTop ?? 140;
+    const hudTop    = this.cfg.hudTop    ?? 140;
     const hudBottom = this.cfg.hudBottom ?? 220;
     const availH = safeH - hudTop - hudBottom;
     const availW = safeW - (this.cfg.hudLeft ?? 0) - (this.cfg.hudRight ?? 0);
 
-    // Pick the scale that fits the reel area in the available box, never > 1.
-    const scale = Math.min(availW / reelW, availH / reelH, 1);
+    // Pick the scale that fills the available box while preserving aspect ratio.
+    const scale = Math.min(availW / reelW, availH / reelH);
 
     const scaledW = reelW * scale;
     const scaledH = reelH * scale;
-    const x = (this.cfg.hudLeft ?? 0) + (availW - scaledW) / 2;
-    const y = hudTop + (availH - scaledH) / 2;
+    const x = Math.round((this.cfg.hudLeft ?? 0) + (availW - scaledW) / 2);
+    const y = Math.round(hudTop + (availH - scaledH) / 2);
 
     if (this.content) {
       this.content.scale.set(scale);
@@ -104,10 +118,12 @@ export class ReelsFrame extends SmartContainer {
     }
 
     if (this.panel) {
-      // Scale the panel to exactly cover the reelset area.
-      this.panel.width = scaledW;
-      this.panel.height = scaledH;
-      this.panel.position.set(x, y);
+      // Expand the panel by panelPadding on every side so the frame border
+      // has breathing room beyond the symbol area.
+      const scaledPad = pad * scale;
+      this.panel.width  = scaledW + scaledPad * 2;
+      this.panel.height = scaledH + scaledPad * 2;
+      this.panel.position.set(x - scaledPad, y - scaledPad);
     }
   }
 }
