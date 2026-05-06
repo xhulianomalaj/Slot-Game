@@ -7,6 +7,7 @@ export function IconButton({
   active,
   disabled,
   testId,
+  extraProps,
 }: {
   ariaLabel: string;
   children: ComponentChildren;
@@ -14,6 +15,7 @@ export function IconButton({
   active?: boolean;
   disabled?: boolean;
   testId?: string;
+  extraProps?: Record<string, string>;
 }): JSX.Element {
   return (
     <button
@@ -24,6 +26,7 @@ export function IconButton({
       disabled={disabled}
       onClick={onClick}
       data-testid={testId}
+      {...extraProps}
     >
       {children}
     </button>

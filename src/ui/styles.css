@@ -117,6 +117,20 @@
   justify-content: flex-end;
 }
 
+/* Stacks bet + win on top of each other; only one is opaque at a time */
+.bet-board__kv-slot {
+  position: relative;
+}
+.bet-board__kv-slot .kv {
+  transition: opacity 0.2s ease;
+}
+.bet-board__kv-slot .kv + .kv {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
 .bet-board__center {
   display: flex;
   align-items: center;

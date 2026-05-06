@@ -25,6 +25,7 @@ export const SpinButton = observer(() => {
       disabled={disabled}
       onClick={onClick}
       data-testid="spin"
+      data-pixi-label="spin"
       data-state={isStopState ? 'stop' : 'spin'}
     >
       {isStopState ? <IconSkip /> : <IconPlay />}

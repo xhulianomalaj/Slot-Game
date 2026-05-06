@@ -465,15 +465,23 @@ export class TestBridge {
   /**
    * Walk the Pixi stage tree and return every node whose `.label` is
    * non-empty. Useful for sanity-checking what a test can find.
+   * Also includes DOM elements that carry `data-pixi-label` (for the
+   * Preact HUD which replaces the Pixi HUDLayer).
    */
   pixiLabels(): string[] {
-    if (!this.opts.app) return [];
     const out: string[] = [];
-    const walk = (n: Container): void => {
-      if (n.label) out.push(String(n.label));
-      for (const child of n.children) walk(child as Container);
-    };
-    walk(this.opts.app.stage);
+    if (this.opts.app) {
+      const walk = (n: Container): void => {
+        if (n.label) out.push(String(n.label));
+        for (const child of n.children) walk(child as Container);
+      };
+      walk(this.opts.app.stage);
+    }
+    // DOM HUD elements registered with data-pixi-label
+    for (const el of document.querySelectorAll('[data-pixi-label]')) {
+      const lbl = el.getAttribute('data-pixi-label');
+      if (lbl && !out.includes(lbl)) out.push(lbl);
+    }
     return out;
   }
 
@@ -484,45 +492,60 @@ export class TestBridge {
    *
    * Authoring rule: every interactive Pixi `Container` should have a
    * `.label` set. The pixi-coverage spec asserts the required ones.
+   * DOM elements with `data-pixi-label` are included as a fallback for
+   * the Preact HUD layer.
    */
   a11yTree(): PixiBounds[] {
-    if (!this.opts.app) return [];
     const out: PixiBounds[] = [];
-    const walk = (n: Container): void => {
-      if (n.label) {
-        const b = n.getBounds();
-        out.push({
-          label: String(n.label),
-          x: b.x,
-          y: b.y,
-          width: b.width,
-          height: b.height,
-          centerX: b.x + b.width / 2,
-          centerY: b.y + b.height / 2,
-          visible: n.visible,
-        });
-      }
-      for (const child of n.children) walk(child as Container);
-    };
-    walk(this.opts.app.stage);
+    if (this.opts.app) {
+      const walk = (n: Container): void => {
+        if (n.label) {
+          const b = n.getBounds();
+          out.push({
+            label: String(n.label),
+            x: b.x,
+            y: b.y,
+            width: b.width,
+            height: b.height,
+            centerX: b.x + b.width / 2,
+            centerY: b.y + b.height / 2,
+            visible: n.visible,
+          });
+        }
+        for (const child of n.children) walk(child as Container);
+      };
+      walk(this.opts.app.stage);
+    }
+    // DOM HUD elements
+    const pixiLabelSet = new Set(out.map((n) => n.label));
+    for (const el of document.querySelectorAll('[data-pixi-label]')) {
+      const lbl = el.getAttribute('data-pixi-label');
+      if (!lbl || pixiLabelSet.has(lbl)) continue;
+      out.push(this.domBounds(lbl, el as HTMLElement));
+    }
     return out;
   }
 
-  /** Find a Pixi object by `.label` and return its bounds in canvas coords. */
+  /** Find a Pixi object by `.label` and return its bounds in canvas coords.
+   *  Falls back to a DOM element with `data-pixi-label` if no Pixi node found. */
   pixiBounds(label: string): PixiBounds | null {
     const node = this.findPixi(label);
-    if (!node || !this.opts.app) return null;
-    const b = node.getBounds();
-    return {
-      label,
-      x: b.x,
-      y: b.y,
-      width: b.width,
-      height: b.height,
-      centerX: b.x + b.width / 2,
-      centerY: b.y + b.height / 2,
-      visible: node.visible,
-    };
+    if (node && this.opts.app) {
+      const b = node.getBounds();
+      return {
+        label,
+        x: b.x,
+        y: b.y,
+        width: b.width,
+        height: b.height,
+        centerX: b.x + b.width / 2,
+        centerY: b.y + b.height / 2,
+        visible: node.visible,
+      };
+    }
+    const el = document.querySelector(`[data-pixi-label="${label}"]`) as HTMLElement | null;
+    if (!el) return null;
+    return this.domBounds(label, el);
   }
 
   /**
@@ -531,17 +554,24 @@ export class TestBridge {
    * ordering stays deterministic. For tests that need to verify the
    * pointer pipeline itself, drive Playwright's canvas click with the
    * coordinates returned by `pixiBounds(label)`.
+   * Falls back to `.click()` on a DOM element with `data-pixi-label` when
+   * the Pixi HUDLayer is not active (e.g. when using the Preact HUD).
    */
   clickPixi(label: string): void {
     this.record('clickPixi', [label], () => {
       const node = this.findPixi(label);
-      if (!node)
-        throw new Error(
-          `[TestBridge] no pixi object with label "${label}". Available: ${this.pixiLabels().join(', ')}`,
-        );
-      // Pixi emits 'pointertap' for click handlers attached via `.on('pointertap', ...)`.
-      // The handlers in slotplate ignore the event arg, so a partial event works.
-      node.emit('pointertap', { type: 'pointertap', target: node } as never);
+      if (node) {
+        node.emit('pointertap', { type: 'pointertap', target: node } as never);
+        return;
+      }
+      const el = document.querySelector(`[data-pixi-label="${label}"]`) as HTMLElement | null;
+      if (el) {
+        el.click();
+        return;
+      }
+      throw new Error(
+        `[TestBridge] no pixi object with label "${label}". Available: ${this.pixiLabels().join(', ')}`,
+      );
     });
   }
 
@@ -554,6 +584,24 @@ export class TestBridge {
       for (const child of node.children) queue.push(child as Container);
     }
     return null;
+  }
+
+  /** Build a PixiBounds record from a DOM element's bounding rect.
+   *  Visibility is true when the element has non-zero layout dimensions
+   *  and is not hidden via `display:none` (opacity:0 counts as visible). */
+  private domBounds(label: string, el: HTMLElement): PixiBounds {
+    const r = el.getBoundingClientRect();
+    const visible = el.offsetWidth > 0 && el.offsetHeight > 0;
+    return {
+      label,
+      x: r.x,
+      y: r.y,
+      width: r.width,
+      height: r.height,
+      centerX: r.x + r.width / 2,
+      centerY: r.y + r.height / 2,
+      visible,
+    };
   }
 
   // ─── Ticker control ──────────────────────────────────────────────
