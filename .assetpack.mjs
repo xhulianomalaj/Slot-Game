@@ -13,5 +13,5 @@ export default {
   output: './public/assets',
   cache: true,
   cacheLocation: '.assetpack-cache',
-  pipes: [...pixiPipes({ cacheBust: true, resolutions: { default: 1, low: 0.5 }, compression: { jpg: true, png: true, webp: true } })],
+  pipes: [...pixiPipes({ cacheBust: false, resolutions: { default: 1, low: 0.5 }, compression: { jpg: true, png: true, webp: true } })],
 };

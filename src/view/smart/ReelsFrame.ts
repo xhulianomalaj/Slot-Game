@@ -5,10 +5,11 @@
 // Typical use from MainScene:
 //
 //   this.reelsFrame = new ReelsFrame({ columns: 5, rows: 3, cellSize: 140 });
+//   this.reelsFrame.setPanel(panelSprite);   // decorative frame behind symbols
 //   this.reelsFrame.setContent(myReelSetContainer);
 //   this.app.stage.addChild(this.reelsFrame);
 
-import type { Container } from 'pixi.js';
+import { Sprite, type Container, type Texture } from 'pixi.js';
 import { SmartContainer, type SmartContainerOptions } from './SmartContainer';
 
 export interface ReelsFrameConfig {
@@ -30,6 +31,7 @@ const DEFAULT_DESIGN = {
 
 export class ReelsFrame extends SmartContainer {
   private content: Container | null = null;
+  private panel: Sprite | null = null;
 
   constructor(private readonly cfg: ReelsFrameConfig) {
     const hudTop = cfg.hudTop ?? 140;
@@ -64,8 +66,18 @@ export class ReelsFrame extends SmartContainer {
     this.relayout();
   }
 
+  /** Place a decorative panel sprite behind the symbols. Call before setContent. */
+  setPanel(texture: Texture): void {
+    if (this.panel) {
+      this.removeChild(this.panel);
+      this.panel.destroy();
+    }
+    this.panel = new Sprite(texture);
+    this.addChildAt(this.panel, 0); // always behind the ReelSet
+    this.relayout();
+  }
+
   protected override onResize(): void {
-    if (!this.content) return;
     const { columns, rows, cellSize } = this.cfg;
     const reelW = columns * cellSize;
     const reelH = rows * cellSize;
@@ -80,10 +92,22 @@ export class ReelsFrame extends SmartContainer {
 
     // Pick the scale that fits the reel area in the available box, never > 1.
     const scale = Math.min(availW / reelW, availH / reelH, 1);
-    this.content.scale.set(scale);
 
     const scaledW = reelW * scale;
     const scaledH = reelH * scale;
-    this.content.position.set((this.cfg.hudLeft ?? 0) + (availW - scaledW) / 2, hudTop + (availH - scaledH) / 2);
+    const x = (this.cfg.hudLeft ?? 0) + (availW - scaledW) / 2;
+    const y = hudTop + (availH - scaledH) / 2;
+
+    if (this.content) {
+      this.content.scale.set(scale);
+      this.content.position.set(x, y);
+    }
+
+    if (this.panel) {
+      // Scale the panel to exactly cover the reelset area.
+      this.panel.width = scaledW;
+      this.panel.height = scaledH;
+      this.panel.position.set(x, y);
+    }
   }
 }

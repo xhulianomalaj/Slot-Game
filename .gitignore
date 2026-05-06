@@ -6,6 +6,9 @@ dist
 .env.local
 coverage
 
+# AssetPack cache
+.assetpack-cache/
+
 # Playwright output
 test-results-scenarios/
 test-results/

@@ -6,7 +6,7 @@
 // For now, this file hand-declares a minimal manifest so the game boots
 // before you wire the assetpack pipeline.
 
-export interface AssetEntry {
+  export interface AssetEntry {
   alias: string | string[];
   src: string;
 }
@@ -19,7 +19,10 @@ export const BUNDLES: AssetBundleDef[] = [
   {
     name: 'boot',
     // Boot-critical: logo, first fonts, splash bg. Keep tiny — blocks the loader.
-    assets: [],
+    assets: [
+      { alias: 'bg-landscape', src: '/assets/theme/bg-landscape.png' },
+      { alias: 'bg-portrait',  src: '/assets/theme/bg-portrait.png' },
+    ],
   },
   {
     name: 'main',

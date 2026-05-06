@@ -5,7 +5,7 @@
 // ReelsPresenter. Loads real symbol art from public/assets/symbols/*.png;
 // falls back to programmatic placeholders if any texture is missing.
 
-import { Application, type Texture } from 'pixi.js';
+import { Application, Assets, type Texture } from 'pixi.js';
 import { ReelSetBuilder, SpeedPresets } from 'pixi-reels';
 import { GAME } from '@/config/gameConfig';
 import { THEME } from '@/config/theme';
@@ -27,6 +27,7 @@ export class MainScene implements Disposable {
   private background: BackgroundLayer | null = null;
   private engineDisposable: Disposable | null = null;
   private textures: Record<string, Texture> | null = null;
+  private reelPanelTexture: Texture | null = null;
 
   constructor() {
     this.app = new Application();
@@ -87,6 +88,11 @@ export class MainScene implements Disposable {
     } catch (err) {
       console.warn('[MainScene] background texture failed to load, falling back to clearColor:', err);
     }
+    try {
+      this.reelPanelTexture = await Assets.load<Texture>('/assets/theme/reel-frame.png');
+    } catch (err) {
+      console.warn('[MainScene] reel-frame texture failed to load, panel will be skipped:', err);
+    }
   }
 
   createReelsEngine(): ReelsEngine {
@@ -110,6 +116,7 @@ export class MainScene implements Disposable {
       .build();
 
     this.reelsFrame?.setContent(reelSet);
+    if (this.reelPanelTexture) this.reelsFrame?.setPanel(this.reelPanelTexture);
     resizeObject.remeasure();
 
     const adapter = adaptReelSet(reelSet);

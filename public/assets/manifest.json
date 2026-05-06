@@ -1,0 +1,335 @@
+{
+  "bundles": [
+    {
+      "name": "default",
+      "assets": [
+        {
+          "alias": [
+            "icons/bonus.png",
+            "bonus.png"
+          ],
+          "src": [
+            "icons/bonus@0.5x.webp",
+            "icons/bonus@0.5x.png",
+            "icons/bonus.webp",
+            "icons/bonus.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "icons/info.png",
+            "info.png"
+          ],
+          "src": [
+            "icons/info@0.5x.webp",
+            "icons/info@0.5x.png",
+            "icons/info.webp",
+            "icons/info.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "icons/scatter.png"
+          ],
+          "src": [
+            "icons/scatter@0.5x.webp",
+            "icons/scatter@0.5x.png",
+            "icons/scatter.webp",
+            "icons/scatter.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "icons/tip.png",
+            "tip.png"
+          ],
+          "src": [
+            "icons/tip@0.5x.webp",
+            "icons/tip@0.5x.png",
+            "icons/tip.webp",
+            "icons/tip.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "icons/warn.png",
+            "warn.png"
+          ],
+          "src": [
+            "icons/warn@0.5x.webp",
+            "icons/warn@0.5x.png",
+            "icons/warn.webp",
+            "icons/warn.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "icons/wild.png"
+          ],
+          "src": [
+            "icons/wild@0.5x.webp",
+            "icons/wild@0.5x.png",
+            "icons/wild.webp",
+            "icons/wild.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/bar.png",
+            "bar.png"
+          ],
+          "src": [
+            "symbols/bar@0.5x.webp",
+            "symbols/bar@0.5x.png",
+            "symbols/bar.webp",
+            "symbols/bar.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/bell.png",
+            "bell.png"
+          ],
+          "src": [
+            "symbols/bell@0.5x.webp",
+            "symbols/bell@0.5x.png",
+            "symbols/bell.webp",
+            "symbols/bell.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/cherry.png",
+            "cherry.png"
+          ],
+          "src": [
+            "symbols/cherry@0.5x.webp",
+            "symbols/cherry@0.5x.png",
+            "symbols/cherry.webp",
+            "symbols/cherry.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/lemon.png",
+            "lemon.png"
+          ],
+          "src": [
+            "symbols/lemon@0.5x.webp",
+            "symbols/lemon@0.5x.png",
+            "symbols/lemon.webp",
+            "symbols/lemon.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/orange.png",
+            "orange.png"
+          ],
+          "src": [
+            "symbols/orange@0.5x.webp",
+            "symbols/orange@0.5x.png",
+            "symbols/orange.webp",
+            "symbols/orange.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/plum.png",
+            "plum.png"
+          ],
+          "src": [
+            "symbols/plum@0.5x.webp",
+            "symbols/plum@0.5x.png",
+            "symbols/plum.webp",
+            "symbols/plum.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/scatter.png"
+          ],
+          "src": [
+            "symbols/scatter@0.5x.webp",
+            "symbols/scatter@0.5x.png",
+            "symbols/scatter.webp",
+            "symbols/scatter.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/seven.png",
+            "seven.png"
+          ],
+          "src": [
+            "symbols/seven@0.5x.webp",
+            "symbols/seven@0.5x.png",
+            "symbols/seven.webp",
+            "symbols/seven.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "symbols/wild.png"
+          ],
+          "src": [
+            "symbols/wild@0.5x.webp",
+            "symbols/wild@0.5x.png",
+            "symbols/wild.webp",
+            "symbols/wild.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/bg-landscape.png",
+            "bg-landscape.png"
+          ],
+          "src": [
+            "theme/bg-landscape@0.5x.webp",
+            "theme/bg-landscape@0.5x.png",
+            "theme/bg-landscape.webp",
+            "theme/bg-landscape.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/bg-portrait.png",
+            "bg-portrait.png"
+          ],
+          "src": [
+            "theme/bg-portrait@0.5x.webp",
+            "theme/bg-portrait@0.5x.png",
+            "theme/bg-portrait.webp",
+            "theme/bg-portrait.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/buy-bonus-badge.png",
+            "buy-bonus-badge.png"
+          ],
+          "src": [
+            "theme/buy-bonus-badge@0.5x.webp",
+            "theme/buy-bonus-badge@0.5x.png",
+            "theme/buy-bonus-badge.webp",
+            "theme/buy-bonus-badge.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/char-left.png",
+            "char-left.png"
+          ],
+          "src": [
+            "theme/char-left@0.5x.webp",
+            "theme/char-left@0.5x.png",
+            "theme/char-left.webp",
+            "theme/char-left.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/char-right.png",
+            "char-right.png"
+          ],
+          "src": [
+            "theme/char-right@0.5x.webp",
+            "theme/char-right@0.5x.png",
+            "theme/char-right.webp",
+            "theme/char-right.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/logo-banner.png",
+            "logo-banner.png"
+          ],
+          "src": [
+            "theme/logo-banner@0.5x.webp",
+            "theme/logo-banner@0.5x.png",
+            "theme/logo-banner.webp",
+            "theme/logo-banner.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        },
+        {
+          "alias": [
+            "theme/reel-frame.png",
+            "reel-frame.png"
+          ],
+          "src": [
+            "theme/reel-frame@0.5x.webp",
+            "theme/reel-frame@0.5x.png",
+            "theme/reel-frame.webp",
+            "theme/reel-frame.png"
+          ],
+          "data": {
+            "tags": {}
+          }
+        }
+      ]
+    }
+  ]
+}

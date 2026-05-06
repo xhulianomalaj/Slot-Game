@@ -12,6 +12,14 @@ export interface BackgroundDef {
   /** Public URL of the tileable texture. Loaded by `AssetLoader`. */
   src: string;
   /**
+   * If provided, overrides `src` based on viewport orientation.
+   * Use for full-bleed scene art that has separate landscape/portrait versions.
+   * When these are set, `BackgroundLayer` renders a fitCover Sprite instead
+   * of a TilingSprite — `tileScale` is ignored.
+   */
+  srcLandscape?: string;
+  srcPortrait?: string;
+  /**
    * Multiplier on the design tile size. The tile is rendered at
    * `tileScale * (viewportShorterEdge / 1080)` so the same texture looks
    * proportionate on a phone and a 4K monitor.
@@ -83,6 +91,13 @@ export const BACKGROUNDS = {
     tint: 0xffffff,
     vignette: { ...DEFAULT_VIGNETTE, alpha: 0.5, color: 0x06160c },
   },
+  /** Full-bleed scene art — landscape for desktop/landscape, portrait for mobile portrait. */
+  'game-bg': {
+    src: '/assets/theme/bg-landscape.png',
+    srcLandscape: '/assets/theme/bg-landscape.png',
+    srcPortrait: '/assets/theme/bg-portrait.png',
+    vignette: false,
+  },
 } as const satisfies Record<string, BackgroundDef>;
 
 export type BackgroundId = keyof typeof BACKGROUNDS;
@@ -96,7 +111,7 @@ export const THEME = {
   /** Solid color drawn under the tile — what you see while assets load. */
   clearColor: 0x0e1d21,
   /** Active background id. Must be a key of `BACKGROUNDS`. */
-  background: 'proto-dark-05' as BackgroundId,
+  background: 'game-bg' as BackgroundId,
 } as const;
 
 export function getBackground(id: BackgroundId): BackgroundDef {
