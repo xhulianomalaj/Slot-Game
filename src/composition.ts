@@ -211,9 +211,9 @@ export async function compose({
           if (!inspectorOff) inspectorDisposer = mountInspector(testBridge, inspectorChannel);
         }
 
-        // 6) Mount the Pixi HUD on top of the reels.
-        hudLayer = new HUDLayer({ stores, fsm });
-        scene.app.stage.addChild(hudLayer);
+        // 6) Pixi HUD disabled — using Preact HUD (BottomBar/BottomStrip in App.tsx) instead.
+        // hudLayer = new HUDLayer({ stores, fsm });
+        // scene.app.stage.addChild(hudLayer);
 
         stores.ui.setBootStage('ready');
         await fsm.transition('idle');

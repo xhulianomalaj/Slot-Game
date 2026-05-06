@@ -34,15 +34,17 @@
   --chip-fs: clamp(14px, 1.8vw, 17px);
   --num-fs: clamp(15px, 2vw, 19px);
   --label-fs: clamp(10px, 1.1vw, 12px);
-  --icon-btn-size: clamp(38px, 5vw, 46px);
-  --spin-size: clamp(84px, 12vw, 108px);
+  /* Scale with viewport — guarantees the whole board shrinks as a unit.
+   * clamp(min, preferred, max): below ~756px things start to get compact. */
+  --icon-btn-size: clamp(34px, 4.5vw, 52px);
+  --spin-size: clamp(68px, 9vw, 112px);
 }
 
 .hud {
   position: fixed;
   inset: 0;
-  display: grid;
-  grid-template-rows: auto 1fr auto auto;
+  display: flex;
+  flex-direction: column;
   pointer-events: none;
   z-index: 10;
   color: var(--hud-fg);
@@ -56,50 +58,98 @@
   pointer-events: auto;
 }
 
-/* ─── Bottom bar — Hacksaw-style control cluster ─────────── */
-.hud-bottom {
+/* ─── Bet board — unified bottom panel ──────────────────────
+ * The board has a fixed natural width (920px). CSS `zoom` scales the
+ * ENTIRE panel down proportionally when the viewport is narrower than that.
+ * Unlike clamp() on individual gaps, zoom scales everything at once:
+ * gaps, buttons, text — so nothing ever touches regardless of window size.
+ * zoom also affects layout reflow (unlike transform: scale) so the flex
+ * parent always sees the correct footprint. */
+.bet-board-wrap {
+  margin-top: auto;
+  /* Room for the SPIN label that sits below the spin button */
+  padding-bottom: clamp(10px, 2vh, 28px);
+}
+
+.bet-board {
+  /* Scope size tokens — only affects elements inside the board */
+  --spin-size: 108px;
+  --icon-btn-size: 46px;
+
+  /* Fixed natural width — zoom handles all viewport adaptation */
+  width: 1060px;
+  margin: 0 auto;
+
+  /* Scale the whole board down as a unit when viewport < 1060px.
+   * calc(100vw / 1060px) gives a dimensionless ratio (length/length).
+   * Floor of 0.28 means minimum rendered width ~297px — extremely narrow. */
+  zoom: clamp(0.28, calc(100vw / 1060px), 1);
+
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 8px var(--pad-x) 4px;
-  gap: clamp(8px, 2vw, 24px);
+  /* Fixed gaps — zoom keeps proportions, nothing shrinks independently */
+  column-gap: 28px;
+  padding: 12px 24px 40px;
+  background: linear-gradient(180deg, rgba(8, 10, 14, 0.78), rgba(8, 10, 14, 0.92));
+  border-top: 1px solid rgba(176, 138, 30, 0.35);
+  box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(244, 192, 48, 0.08) inset;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-.bottom-col-left,
-.bottom-col-right {
+/* Override kv font sizes to fixed px inside the board.
+ * zoom handles the visual scaling — no vw-based sizes needed here. */
+.bet-board .kv__label { font-size: 11px; }
+.bet-board .kv__value { font-size: 16px; }
+
+.bet-board__side {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 20px;   /* fixed — zoom preserves this gap at all viewport sizes */
+  min-width: 0;
+  flex-wrap: nowrap;
 }
-.bottom-col-center {
-  display: flex;
-  justify-content: center;
+.bet-board__side--left {
+  justify-content: flex-start;
+}
+.bet-board__side--right {
+  justify-content: flex-end;
 }
 
-/* Spin + flanking ± stepper.
- * Portrait: row (− SPIN +)
- * Landscape narrow-height: column (+ / SPIN / −) on the right side */
-.spin-cluster {
+.bet-board__center {
   display: flex;
   align-items: center;
-  gap: clamp(10px, 2.4vw, 20px);
+  gap: 14px;   /* fixed — ± stack and spin button always keep this spacing */
+  flex-shrink: 0;
 }
-.spin-cluster .icon-btn {
+.bet-board__stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 18px;
+}
+.bet-board__center .icon-btn {
   border-radius: 50%;
-  width: clamp(42px, 6.2vw, 56px);
-  height: clamp(42px, 6.2vw, 56px);
+  width: 46px;
+  height: 46px;
   background: var(--hud-bg);
   border-width: 2px;
+  flex-shrink: 0;
 }
-.spin-cluster .icon-btn:hover:not([disabled]) {
-  border-color: rgba(255, 122, 34, 0.4);
+.bet-board__center .icon-btn:hover:not([disabled]) {
+  border-color: rgba(244, 192, 48, 0.45);
 }
+
+/* Legacy aliases — kept so old layout rules don't accidentally hit anything.
+ * The old .hud-bottom / .bottom-col-* classes are no longer rendered. */
+.hud-bottom { display: none; }
 
 /* ─── Buy Bonus badge ────────────────────────────────────── */
 .buy-bonus {
   position: relative;
-  width: clamp(56px, 8vw, 78px);
-  height: clamp(56px, 8vw, 78px);
+  width: clamp(44px, 5.5vw, 58px);
+  height: clamp(44px, 5.5vw, 58px);
   border-radius: 50%;
   border: 2px solid rgba(255, 184, 56, 0.5);
   background: radial-gradient(circle at 35% 35%, #ffb838, #c78404 70%, #7d4e00);
@@ -1047,17 +1097,6 @@
  *   [BuyBonus]   [− SPIN +]   [Auto]
  *   ☰  ℹ 🔊     DEMO BALANCE · DEMO BET */
 @media (max-width: 639px) and (orientation: portrait) {
-  .hud-bottom {
-    padding: 6px 12px 4px;
-    gap: 8px;
-  }
-  .spin-cluster {
-    gap: 10px;
-  }
-  .spin-cluster .icon-btn {
-    width: 44px;
-    height: 44px;
-  }
   .spin .spin-hint {
     bottom: -16px;
     font-size: 9px;
@@ -1094,18 +1133,7 @@
   .hud {
     grid-template-rows: 1fr auto auto;
   }
-  .hud-bottom {
-    padding: 6px calc(env(safe-area-inset-right, 0px) + 14px) 4px calc(env(safe-area-inset-left, 0px) + 14px);
-    align-items: center;
-  }
-  .spin-cluster {
-    flex-direction: column-reverse; /* + on top, SPIN middle, − bottom */
-    gap: 6px;
-  }
-  .spin-cluster .icon-btn {
-    width: clamp(36px, 7vh, 44px);
-    height: clamp(36px, 7vh, 44px);
-  }
+  /* bet-board handled by clamp() in base rule */
   .buy-bonus {
     width: clamp(50px, 10vh, 68px);
     height: clamp(50px, 10vh, 68px);
@@ -1142,17 +1170,7 @@
     --spin-size: 104px;
     --icon-btn-size: 48px;
   }
-  .hud-bottom {
-    padding: 10px 28px 6px;
-    gap: 24px;
-  }
-  .spin-cluster {
-    gap: 16px;
-  }
-  .spin-cluster .icon-btn {
-    width: 54px;
-    height: 54px;
-  }
+  /* bet-board handled by clamp() in base rule */
   .spin .spin-hint {
     bottom: -22px;
     font-size: 11px;
@@ -1177,17 +1195,7 @@
     --spin-size: 112px;
     --icon-btn-size: 52px;
   }
-  .hud-bottom {
-    padding: 14px 40px 8px;
-    gap: 40px;
-  }
-  .spin-cluster {
-    gap: 22px;
-  }
-  .spin-cluster .icon-btn {
-    width: 58px;
-    height: 58px;
-  }
+  /* bet-board handled by clamp() in base rule */
   .rb-paylines {
     grid-template-columns: repeat(3, 1fr);
   }

@@ -2,6 +2,7 @@ import { h, render } from 'preact';
 import type { Disposable } from '@/utils/Disposable';
 import { App } from './App';
 import type { UIContext } from './hooks/useStores';
+import './styles.css';
 
 /**
  * Mounts the Preact HUD into the given DOM node and returns a Disposable.

@@ -9,7 +9,7 @@
 
 export const GAME = {
   /** Display name shown in the header. */
-  title: 'Slotplate',
+  title: 'Slot Game',
   columns: 5,
   rows: 3,
   defaultBet: 1,

@@ -71,7 +71,7 @@ export class MainScene implements Disposable {
       panelPadding: PANEL_PADDING,
       hudTop: 200,
       hudBottom: 280,
-      offsetY: -15,
+      offsetY: -40,
     });
     this.app.stage.addChild(this.reelsFrame);
   }
