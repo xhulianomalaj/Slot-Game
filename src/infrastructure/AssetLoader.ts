@@ -1,54 +1,30 @@
 // AssetLoader — facade over Pixi's Assets API with progress reporting.
 //
-// Usage:
-//   const loader = new AssetLoader(BUNDLES);
-//   await loader.loadAll((progress) => uiStore.setLoadProgress(progress));
-//
-// In production, `@assetpack/core` (configured via `.assetpack.mjs` at the
-// repo root) compiles `raw-assets/` into optimized bundles and hashes them
-// for long cache TTLs. The `BUNDLES` manifest is what we feed Pixi's
-// `Assets` API — one Pixi bundle per logical phase (boot / main / bonus).
+// At boot, calls `Assets.init({ manifest: '/assets/manifest.json' })` to
+// register the assetpack-generated manifest. This manifest maps stable aliases
+// (e.g. "bg-landscape.png") to the real cache-busted filenames on disk.
+// All subsequent `Assets.load()` / `Assets.loadBundle()` calls use those
+// stable aliases — the hashed URLs are resolved automatically by Pixi.
 
 import { Assets } from 'pixi.js';
-import type { AssetBundleDef } from './loader/assetManifest';
 
 export type ProgressFn = (progress: number) => void;
 
+let manifestInitialized = false;
+
+/** Initialize Pixi Assets with the assetpack-generated manifest. Call once at boot. */
+export async function initAssets(): Promise<void> {
+  if (manifestInitialized) return;
+  await Assets.init({ manifest: '/assets/manifest.json', basePath: '/assets' });
+  manifestInitialized = true;
+}
+
 export class AssetLoader {
-  private loadedBundles = new Set<string>();
-
-  constructor(private readonly bundles: AssetBundleDef[]) {
-    for (const b of bundles) {
-      if (b.assets.length === 0) continue;
-      Assets.addBundle(b.name, b.assets as unknown as Record<string, string>);
-    }
-  }
-
-  /** Load every bundle in declared order, reporting aggregate progress. */
+  /** Load every bundle declared in the manifest, reporting aggregate progress. */
   async loadAll(onProgress?: ProgressFn): Promise<void> {
-    const bundlesToLoad = this.bundles.filter((b) => b.assets.length > 0);
-    if (bundlesToLoad.length === 0) {
-      onProgress?.(1);
-      return;
-    }
-    for (const [i, bundle] of bundlesToLoad.entries()) {
-      const base = i / bundlesToLoad.length;
-      const step = 1 / bundlesToLoad.length;
-      await Assets.loadBundle(bundle.name, (p) => onProgress?.(base + p * step));
-      this.loadedBundles.add(bundle.name);
-    }
+    await initAssets();
+    // The generated manifest has a single "default" bundle containing all assets.
+    await Assets.loadBundle('default', (p) => onProgress?.(p));
     onProgress?.(1);
-  }
-
-  async load(name: string, onProgress?: ProgressFn): Promise<void> {
-    if (this.loadedBundles.has(name)) return;
-    await Assets.loadBundle(name, onProgress);
-    this.loadedBundles.add(name);
-  }
-
-  async unload(name: string): Promise<void> {
-    if (!this.loadedBundles.has(name)) return;
-    await Assets.unloadBundle(name);
-    this.loadedBundles.delete(name);
   }
 }

@@ -93,9 +93,9 @@ export const BACKGROUNDS = {
   },
   /** Full-bleed scene art — landscape for desktop/landscape, portrait for mobile portrait. */
   'game-bg': {
-    src: '/assets/theme/bg-landscape.png',
-    srcLandscape: '/assets/theme/bg-landscape.png',
-    srcPortrait: '/assets/theme/bg-portrait.png',
+    src: 'bg-landscape.png',
+    srcLandscape: 'bg-landscape.png',
+    srcPortrait: 'bg-portrait.png',
     vignette: false,
   },
 } as const satisfies Record<string, BackgroundDef>;

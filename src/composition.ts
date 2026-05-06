@@ -18,7 +18,6 @@ import { PHASES } from '@/flow/phases';
 import { i18n, initI18n } from '@/i18n';
 import { ConsoleAnalytics } from '@/infrastructure/Analytics';
 import { AssetLoader } from '@/infrastructure/AssetLoader';
-import { BUNDLES } from '@/infrastructure/loader/assetManifest';
 import { createNetwork, type NetworkManager } from '@/infrastructure/network';
 import { ScriptableMockNetwork } from '@/infrastructure/network/ScriptableMockNetwork';
 import { GsapTicker, type Ticker } from '@/infrastructure/timing';
@@ -108,7 +107,7 @@ export async function compose({
     return createNetwork();
   });
   container.register(Tokens.Analytics, () => new ConsoleAnalytics());
-  container.register(Tokens.Assets, () => new AssetLoader(BUNDLES));
+  container.register(Tokens.Assets, () => new AssetLoader());
   container.register(Tokens.Scene, () => new MainScene());
 
   const stores = container.get(Tokens.Stores);

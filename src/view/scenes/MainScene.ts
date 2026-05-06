@@ -89,7 +89,7 @@ export class MainScene implements Disposable {
       console.warn('[MainScene] background texture failed to load, falling back to clearColor:', err);
     }
     try {
-      this.reelPanelTexture = await Assets.load<Texture>('/assets/theme/reel-frame.png');
+      this.reelPanelTexture = await Assets.load<Texture>('reel-frame.png');
     } catch (err) {
       console.warn('[MainScene] reel-frame texture failed to load, panel will be skipped:', err);
     }
