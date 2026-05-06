@@ -25,6 +25,7 @@
     "test:contract": "vitest run tests/contract",
     "assets:pack": "assetpack --config .assetpack.mjs",
     "assets:watch": "assetpack --config .assetpack.mjs -w",
+    "assets:strip": "node ./scripts/strip-icc.mjs",
     "assets:generate": "node ./scripts/generate-assets.mjs",
     "assets:theme": "node ./scripts/generate-theme.mjs"
   },

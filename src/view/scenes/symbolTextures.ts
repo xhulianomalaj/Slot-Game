@@ -8,9 +8,11 @@
 import { Assets, type Texture } from 'pixi.js';
 
 export async function loadSymbolTextures(symbolIds: readonly string[]): Promise<Record<string, Texture>> {
-  // Aliases in the manifest are "<id>.png" — e.g. "bar.png", "bell.png".
-  const aliases = symbolIds.map((id) => `${id}.png`);
+  // Use the full "symbols/<id>.png" alias — unambiguous even when the same
+  // filename exists in multiple folders (e.g. scatter/wild live in both
+  // icons/ and symbols/, so assetpack omits the short alias for those).
+  const aliases = symbolIds.map((id) => `symbols/${id}.png`);
   const loaded = await Assets.load(aliases);
-  // Re-key by plain id (without .png) for ReelSetBuilder compatibility.
-  return Object.fromEntries(symbolIds.map((id) => [id, loaded[`${id}.png`]])) as Record<string, Texture>;
+  // Re-key by plain id (without path/extension) for ReelSetBuilder compatibility.
+  return Object.fromEntries(symbolIds.map((id) => [id, loaded[`symbols/${id}.png`]])) as Record<string, Texture>;
 }
