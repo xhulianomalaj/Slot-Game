@@ -11,6 +11,7 @@
 
 import { Sprite, type Container, type Texture } from 'pixi.js';
 import { SmartContainer, type SmartContainerOptions } from './SmartContainer';
+import { resizeObject } from './ResizeObserver';
 
 export interface ReelsFrameConfig {
   columns: number;
@@ -27,6 +28,13 @@ export interface ReelsFrameConfig {
   hudBottom?: number;
   hudLeft?: number;
   hudRight?: number;
+  /**
+   * Override hudTop/hudBottom used on mobile landscape (viewport height < 500px).
+   * Lets you push the reels down / shrink them on short phone viewports without
+   * affecting portrait or desktop landscape.
+   */
+  hudTopLandscape?: number;
+  hudBottomLandscape?: number;
   /** Vertical offset in design pixels (negative = up, positive = down). */
   offsetY?: number;
 }
@@ -98,9 +106,10 @@ export class ReelsFrame extends SmartContainer {
     const safeW = this.layout.safeWidth;
     const safeH = this.layout.safeHeight;
 
-    // Reserve space for HUD top/bottom bars. Center the reels in the remaining box.
-    const hudTop    = this.cfg.hudTop    ?? 140;
-    const hudBottom = this.cfg.hudBottom ?? 220;
+    // Use mobile-landscape overrides when viewport is short (phones on their side).
+    const isMobileLandscape = !resizeObject.isPortrait && resizeObject.height < 500;
+    const hudTop    = (isMobileLandscape ? (this.cfg.hudTopLandscape    ?? this.cfg.hudTop)    : this.cfg.hudTop)    ?? 140;
+    const hudBottom = (isMobileLandscape ? (this.cfg.hudBottomLandscape ?? this.cfg.hudBottom) : this.cfg.hudBottom) ?? 220;
     const availH = safeH - hudTop - hudBottom;
     const availW = safeW - (this.cfg.hudLeft ?? 0) - (this.cfg.hudRight ?? 0);
 

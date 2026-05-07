@@ -44,7 +44,7 @@ export const BottomBar = observer(() => {
         </div>
       </div>
 
-      {/* CENTER — [± stacked] SPIN (dead-centered under reels) */}
+      {/* CENTER — [± stacked] SPIN [Autospin] */}
       <div class="bet-board__center">
         <div class="bet-board__stepper">
           <IconButton
@@ -67,6 +67,16 @@ export const BottomBar = observer(() => {
           </IconButton>
         </div>
         <SpinButton />
+        <IconButton
+          ariaLabel={ui.isAutospinning ? t('hud.autospin.cancel') : t('hud.autospin.start')}
+          active={ui.isAutospinning}
+          disabled={ui.spinning && !ui.isAutospinning}
+          testId="btn-autospin"
+          extraProps={{ 'data-pixi-label': 'autoplay' }}
+          onClick={() => (ui.isAutospinning ? ui.stopAutospin() : ui.startAutospin(10))}
+        >
+          <IconRepeat />
+        </IconButton>
       </div>
 
       {/* RIGHT — Bet + Win always rendered; opacity toggle keeps both in DOM for tests */}
@@ -92,16 +102,6 @@ export const BottomBar = observer(() => {
           </div>
         </div>
         <SpeedPill />
-        <IconButton
-          ariaLabel={ui.isAutospinning ? t('hud.autospin.cancel') : t('hud.autospin.start')}
-          active={ui.isAutospinning}
-          disabled={ui.spinning && !ui.isAutospinning}
-          testId="btn-autospin"
-          extraProps={{ 'data-pixi-label': 'autoplay' }}
-          onClick={() => (ui.isAutospinning ? ui.stopAutospin() : ui.startAutospin(10))}
-        >
-          <IconRepeat />
-        </IconButton>
       </div>
     </div>
     </div>

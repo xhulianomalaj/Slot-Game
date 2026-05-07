@@ -73,8 +73,11 @@
 
 .bet-board {
   /* Scope size tokens — only affects elements inside the board */
-  --spin-size: 108px;
-  --icon-btn-size: 46px;
+  --spin-size: 88px;
+  --icon-btn-size: 40px;
+  /* Gold accent scoped to the board — matches the ornate frame and BUY BONUS */
+  --hud-accent: #c89a14;
+  --hud-accent-glow: 0 0 28px rgba(200, 154, 20, 0.55);
 
   /* Fixed natural width — zoom handles all viewport adaptation */
   width: 1060px;
@@ -91,11 +94,15 @@
   /* Fixed gaps — zoom keeps proportions, nothing shrinks independently */
   column-gap: 28px;
   padding: 12px 24px 40px;
-  background: linear-gradient(180deg, rgba(8, 10, 14, 0.78), rgba(8, 10, 14, 0.92));
-  border-top: 1px solid rgba(176, 138, 30, 0.35);
-  box-shadow: 0 -2px 14px rgba(0, 0, 0, 0.4), 0 -1px 0 rgba(244, 192, 48, 0.08) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Deep purple-black — echoes the reel panel's dark purple/navy tones */
+  background: linear-gradient(180deg, rgba(14, 10, 30, 0.86), rgba(6, 4, 18, 0.97));
+  border-top: 1px solid rgba(200, 160, 24, 0.55);
+  box-shadow:
+    0 -4px 28px rgba(0, 0, 0, 0.55),
+    0 -1px 0 rgba(200, 160, 24, 0.18) inset,
+    0 -24px 48px rgba(180, 130, 0, 0.06) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Override kv font sizes to fixed px inside the board.
@@ -111,10 +118,10 @@
   flex-wrap: nowrap;
 }
 .bet-board__side--left {
-  justify-content: flex-start;
+  justify-content: flex-end;
 }
 .bet-board__side--right {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 /* Stacks bet + win on top of each other; only one is opaque at a time */
@@ -145,14 +152,16 @@
 }
 .bet-board__center .icon-btn {
   border-radius: 50%;
-  width: 46px;
-  height: 46px;
-  background: var(--hud-bg);
-  border-width: 2px;
+  width: 40px;
+  height: 40px;
+  background: rgba(20, 14, 42, 0.85);
+  border: 2px solid rgba(200, 160, 24, 0.28);
   flex-shrink: 0;
+  transition: border-color 140ms ease, background 140ms ease;
 }
 .bet-board__center .icon-btn:hover:not([disabled]) {
-  border-color: rgba(244, 192, 48, 0.45);
+  border-color: rgba(200, 160, 24, 0.65);
+  background: rgba(30, 22, 56, 0.95);
 }
 
 /* Legacy aliases — kept so old layout rules don't accidentally hit anything.
@@ -398,15 +407,17 @@
   width: var(--spin-size);
   height: var(--spin-size);
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ff914d, #ff6a1a 60%, #c84a00);
-  border: 2px solid rgba(255, 255, 255, 0.18);
+  /* Gold gradient — matches the BUY BONUS button and the ornate reel frame */
+  background: radial-gradient(circle at 32% 28%, #ffe080, #c89010 52%, #7a5000);
+  border: 2px solid rgba(255, 215, 80, 0.45);
   color: #fff;
   display: grid;
   place-items: center;
   cursor: pointer;
   box-shadow:
     var(--hud-accent-glow),
-    0 8px 24px rgba(0, 0, 0, 0.45);
+    0 0 0 3px rgba(120, 80, 0, 0.55),
+    0 8px 28px rgba(0, 0, 0, 0.55);
   transition:
     transform 100ms ease,
     box-shadow 200ms ease;
@@ -1107,10 +1118,78 @@
  * ─────────────────────────────────────────────────────────── */
 
 /* MOBILE PORTRAIT — phones held upright.
- * Layout: bottom cluster on one row, thin strip below.
- *   [BuyBonus]   [− SPIN +]   [Auto]
- *   ☰  ℹ 🔊     DEMO BALANCE · DEMO BET */
-@media (max-width: 639px) and (orientation: portrait) {
+ * 2-row flex layout (like Le Digger):
+ *   Row 1: [BuyBonus | Balance] ........... [Bet/Win | Autospin]
+ *   Row 2:          [−] [+]   ( SPIN )
+ * SpeedPill hidden on portrait — accessible via ⓘ menu.
+ * NOTE: orientation check dropped — DevTools custom viewports don't fire it. */
+@media (max-width: 639px) {
+  .bet-board {
+    --spin-size: 72px;
+    --icon-btn-size: 34px;
+    /* Fill full viewport width, no zoom trick needed */
+    width: 100%;
+    zoom: 1;
+    /* Switch to wrapping flexbox so left/right become row 1, center row 2 */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 90px;
+    row-gap: 6px;
+    padding: 8px 12px 18px;
+  }
+
+  /* Row 1 — left: BuyBonus + Balance */
+  .bet-board__side--left {
+    order: 1;
+    flex: 0 0 auto;
+    min-width: 0;
+    gap: 8px;
+    justify-content: flex-start;
+  }
+
+  /* Row 1 — right: Bet/Win */
+  .bet-board__side--right {
+    order: 2;
+    flex: 0 0 auto;
+    min-width: 0;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  /* Row 2 — [−][+] SPIN [↻], full width, nudged slightly left */
+  .bet-board__center {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  /* Stepper stays vertical (− above +) beside spin */
+  .bet-board__stepper {
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 0;
+  }
+
+  .bet-board__center .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .bet-board .kv__label { font-size: 10px; }
+  .bet-board .kv__value { font-size: 14px; }
+
+  /* Coin sized down so row 1 stays slim */
+  .bet-board .buy-bonus {
+    width: 38px;
+    height: 38px;
+  }
+  .bet-board .buy-bonus__label { font-size: 9px; }
+
+  /* Speed pill hidden — too wide for portrait row 1 */
+  .bet-board .speed-pill { display: none; }
+
   .spin .spin-hint {
     bottom: -16px;
     font-size: 9px;
@@ -1118,63 +1197,48 @@
   .hud-strip {
     padding: 6px 12px calc(var(--hud-safe-bottom) + 8px);
   }
-  .hud-strip__info {
-    gap: 14px;
-  }
-  .kv__label {
-    font-size: 9px;
-  }
-  .kv__value {
-    font-size: 13px;
-  }
-  .rb-paylines {
-    grid-template-columns: 1fr 1fr;
-  }
-  .rb-legend {
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
-  }
+  .hud-strip__info { gap: 14px; }
+  .kv__label { font-size: 9px; }
+  .kv__value { font-size: 13px; }
+  .rb-paylines { grid-template-columns: 1fr 1fr; }
+  .rb-legend { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
 }
 
 /* MOBILE LANDSCAPE — phones rotated.
- * BuyBonus pinned left, spin centered, +/− stacked vertically, autospin right.
- * The .spin-cluster flips to column orientation (+ / SPIN / −). */
+ * Width is plentiful (≥568px) but height is tight (≤540px).
+ * Keep 1-row zoom grid but shrink aggressively and cut vertical padding.
+ * At 568px: zoom ≈ 0.84, spin ≈ 55px — still comfortably tappable. */
 @media (max-height: 540px) and (orientation: landscape) {
-  :root {
-    --pad-x: 14px;
-    --spin-size: clamp(64px, 14vh, 84px);
-    --icon-btn-size: clamp(34px, 7vh, 42px);
+  :root { --pad-x: 14px; }
+  .bet-board-wrap {
+    padding-bottom: clamp(3px, 1vh, 8px);
   }
-  .hud {
-    grid-template-rows: 1fr auto auto;
+  .bet-board {
+    --spin-size: 66px;
+    --icon-btn-size: 30px;
+    width: 680px;
+    zoom: clamp(0.72, calc(100vw / 680px), 1);
+    column-gap: 14px;
+    padding: 5px 14px 20px;
   }
-  /* bet-board handled by clamp() in base rule */
-  .buy-bonus {
-    width: clamp(50px, 10vh, 68px);
-    height: clamp(50px, 10vh, 68px);
+  .bet-board__side { gap: 10px; }
+  .bet-board__stepper { gap: 6px; margin-top: 8px; }
+  .bet-board__center .icon-btn { width: 30px; height: 30px; }
+  .bet-board .kv__label { font-size: 10px; }
+  .bet-board .kv__value { font-size: 13px; }
+  .bet-board .buy-bonus {
+    width: clamp(34px, 8vh, 46px);
+    height: clamp(34px, 8vh, 46px);
   }
-  .bottom-col-left,
-  .bottom-col-right {
-    align-self: stretch;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    gap: 8px;
-  }
+  /* Speed pill — very compact text so it fits the narrow height */
+  .bet-board .speed-pill button { padding: 4px 6px; font-size: 9px; }
   .hud-strip {
-    padding: 4px 14px calc(var(--hud-safe-bottom) + 6px);
-    min-height: 36px;
+    padding: 3px 14px calc(var(--hud-safe-bottom) + 3px);
+    min-height: 28px;
   }
-  .hud-strip__left .icon-btn {
-    width: 32px;
-    height: 32px;
-  }
-  .spin .spin-hint {
-    bottom: -12px;
-    font-size: 8px;
-  }
-  .rb-paylines {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  .hud-strip__left .icon-btn { width: 28px; height: 28px; }
+  .spin .spin-hint { bottom: -11px; font-size: 8px; }
+  .rb-paylines { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* TABLET — 640..1023px. Breathable padding, all labels visible. */
