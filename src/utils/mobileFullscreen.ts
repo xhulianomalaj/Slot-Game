@@ -1,42 +1,33 @@
-// Requests fullscreen on the first user interaction.
-//
-// Two key design decisions:
-//   1. `{ capture: true }` — fires in the capture phase before Pixi's canvas
-//      handler can call stopPropagation(), which would silently swallow the event.
-//   2. No device check — works on real mobile, DevTools emulation, and desktop.
-//      The game benefits from fullscreen on all platforms.
-//
-// iOS Safari (non-PWA) blocks the Fullscreen API entirely; the silent catch
-// handles that gracefully — the game keeps working without fullscreen.
+// Requests fullscreen on the first tap on a touch-primary device.
+// Uses `click` (not `pointerdown`) as it is more universally recognised
+// as a completed user gesture by mobile browsers.
 
 export function enableMobileFullscreen(): void {
   if (typeof document === 'undefined') return;
 
-  // Only activate on touch-primary devices (phones, tablets).
-  // `pointer: coarse` is true on real mobile hardware and false on
-  // mouse-driven desktops/laptops, so desktop users are never affected.
-  if (!window.matchMedia('(pointer: coarse)').matches) return;
+  // Don't guard at setup time — check on every click so toggling DevTools
+  // between mobile/desktop doesn't leave a stale listener active.
 
   function onFirstInteraction(): void {
-    document.removeEventListener('pointerdown', onFirstInteraction, { capture: true });
+    // Re-evaluate on every click: pointer:coarse = touch device or DevTools
+    // mobile emulation; pointer:fine = real desktop/laptop → skip.
+    if (!window.matchMedia('(pointer: coarse)').matches) return;
 
     const el = document.documentElement;
 
+    if (document.fullscreenElement) return; // already fullscreen, nothing to do
+
     if (document.fullscreenEnabled && !document.fullscreenElement) {
       el.requestFullscreen({ navigationUI: 'hide' }).catch(() => {
-        // Fullscreen can be blocked by browser policy (e.g. iOS Safari,
-        // DevTools emulation, cross-origin iframes). Best-effort only.
+        // Blocked by browser policy (e.g. iOS Safari, cross-origin iframes).
       });
-    } else if (
-      'webkitRequestFullscreen' in el &&
-      !(document as unknown as Record<string, unknown>)['webkitFullscreenElement']
-    ) {
+    } else if ('webkitRequestFullscreen' in el) {
       (el as unknown as { webkitRequestFullscreen(opts?: FullscreenOptions): void }).webkitRequestFullscreen(
         { navigationUI: 'hide' },
       );
     }
   }
 
-  document.addEventListener('pointerdown', onFirstInteraction, { capture: true });
+  document.body.addEventListener('click', onFirstInteraction, { capture: true });
 }
 
