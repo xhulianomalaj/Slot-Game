@@ -4,7 +4,7 @@
 
 A fully-featured browser-based slot game built from the ground up as a personal portfolio project. The game is currently **under active development** and will be publicly hosted in the future so anyone can play it directly in their browser — no download required.
 
-> **Status:** In development — core gameplay, HUD, animations, and test infrastructure are complete. Ongoing work includes expanding the mock server with richer response scenarios, refining existing animations, and adding new visual effects. UI polish, sound, and live hosting are also in progress.
+> **Status:** In development — core gameplay, HUD, animations, and test infrastructure are complete. The mock server now simulates realistic reel strips, 20 paylines, wild substitution, and scatter evaluation. Ongoing work includes sound, final art, and live hosting.
 
 ---
 
@@ -22,8 +22,10 @@ The project is intentionally built to the standard of a commercial iGaming clien
 - **Adaptive layout engine** — `SmartContainer` auto-positions every scene element across portrait/landscape and all viewport sizes using per-orientation fit/align configs
 - **Three-tier test suite** — unit tests (Vitest), end-to-end behavior scenarios (Playwright), and a 16-viewport screenshot matrix
 - **In-page test bridge** — exposes the full game state to Playwright specs; lets tests script server responses, simulate connection loss, click canvas buttons by semantic label, and record zero-code spec files live
-- **Scriptable mock network** — all server responses are queue-driven; no real backend required to run the full suite
+- **Realistic mock network** — weighted reel strips (Fisher-Yates shuffled per session), 20-payline evaluation with left-to-right wild substitution, scatter pays anywhere, and variable latency; no real backend required
 - **Responsive bet board** — CSS `zoom`-scaled unified control panel that never clips or overlaps at any viewport width
+- **Speed pill** — single cycling button that steps through Normal → Turbo → Super spin speed modes
+- **Paytable icons** — symbol images resolved from the AssetPack manifest at runtime so hashed filenames never break the UI
 - **Swappable background system** — `TilingSprite`-based theming, live-swappable at runtime, no distortion at any aspect ratio
 
 ### Tech Stack
@@ -103,6 +105,8 @@ raw-assets/             Source art. Compile with `pnpm run assets:pack`.
 **Server is authoritative.** The client never evaluates spin outcomes — it only renders what the server returns. This mirrors the architecture of regulated iGaming products.
 
 **No `setTimeout`.** All time is owned by the FSM and routed through `Ticker.schedule` so tests can freeze, step, and replay time deterministically.
+
+**Win cell deduplication.** When multiple paylines share a cell (common with wilds), `ReelsPresenter` deduplicates positions before passing them to the spotlight engine, preventing stacked GSAP tweens that would otherwise leave symbols frozen.
 
 **Disposable pattern.** Every Pixi object and MobX reaction implements `Disposable` and is cleaned up on scene teardown — no memory leaks across game sessions.
 

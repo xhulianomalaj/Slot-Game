@@ -1,0 +1,18 @@
+{
+  "name": "Slot Game",
+  "short_name": "Slot Game",
+  "description": "A fully-featured browser-based slot game.",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0e1d21",
+  "theme_color": "#0e1d21",
+  "icons": [
+    {
+      "src": "/preview.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
