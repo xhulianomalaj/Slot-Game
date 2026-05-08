@@ -22,3 +22,9 @@ test-results-scenarios/
 test-results/
 playwright-report-scenarios/
 playwright-report/
+
+public/__inspector.html
+
+raw-assets/
+
+.claude/
