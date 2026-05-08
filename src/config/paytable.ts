@@ -25,17 +25,20 @@ export interface PaytableConfig {
 
 export const PAYTABLE: PaytableConfig = {
   lines: '20',
-  theoreticalMaxWin: 5000,
+  // Max possible: all 15 cells wild → all 20 paylines pay 5-of-a-kind wild
+  // Line bet = total bet / 20 → 2500 × (total bet / 20) × 20 paylines = 2500× total bet
+  theoreticalMaxWin: 2500,
   platformMaxWin: 250000,
   symbols: [
-    { id: 'seven', label: 'Seven', payouts: { 3: 50, 4: 200, 5: 1000 } },
-    { id: 'bar', label: 'Bar', payouts: { 3: 25, 4: 100, 5: 500 } },
-    { id: 'bell', label: 'Bell', payouts: { 3: 15, 4: 60, 5: 250 } },
-    { id: 'cherry', label: 'Cherry', payouts: { 3: 10, 4: 40, 5: 150 } },
-    { id: 'plum', label: 'Plum', payouts: { 3: 8, 4: 30, 5: 100 } },
-    { id: 'orange', label: 'Orange', payouts: { 3: 5, 4: 20, 5: 60 } },
-    { id: 'lemon', label: 'Lemon', payouts: { 3: 5, 4: 15, 5: 50 } },
-    { id: 'wild', label: 'Wild', payouts: { 3: 100, 4: 500, 5: 2500 } },
-    { id: 'scatter', label: 'Scatter', payouts: { 3: 5, 4: 20, 5: 100 } },
+    { id: 'wild',    label: 'Wild',              payouts: { 3: 100, 4: 500,  5: 2500 } },
+    { id: 'seven',   label: 'Seven',             payouts: { 3: 50,  4: 200,  5: 1000 } },
+    { id: 'bar',     label: 'Bar',               payouts: { 3: 25,  4: 100,  5: 500  } },
+    { id: 'bell',    label: 'Bell',              payouts: { 3: 15,  4: 60,   5: 250  } },
+    { id: 'cherry',  label: 'Cherry',            payouts: { 3: 10,  4: 40,   5: 150  } },
+    { id: 'plum',    label: 'Plum',              payouts: { 3: 8,   4: 30,   5: 100  } },
+    { id: 'orange',  label: 'Orange',            payouts: { 3: 5,   4: 20,   5: 60   } },
+    { id: 'lemon',   label: 'Lemon',             payouts: { 3: 5,   4: 15,   5: 50   } },
+    // Scatter pays × TOTAL BET (not line bet). Appears anywhere on reels.
+    { id: 'scatter', label: 'Scatter (any pos)', payouts: { 3: 5,   4: 20,   5: 100  } },
   ],
 };

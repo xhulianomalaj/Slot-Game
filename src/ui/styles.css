@@ -465,38 +465,41 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
-/* ─── Speed pill ────────────────────────────────────────── */
+/* ─── Speed pill (single cycling button) ───────────────── */
 .speed-pill {
   display: inline-flex;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
   background: var(--hud-bg);
   border: 1px solid var(--hud-border);
-  border-radius: 12px;
-  padding: 3px;
-  backdrop-filter: blur(8px);
-}
-.speed-pill button {
-  background: transparent;
-  color: var(--hud-muted);
-  border: none;
-  padding: 6px 10px;
   border-radius: 9px;
+  padding: 6px 10px;
   cursor: pointer;
   font-family: var(--font-num);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--hud-muted);
+  backdrop-filter: blur(8px);
   transition:
     background 120ms ease,
-    color 120ms ease;
+    color 120ms ease,
+    border-color 120ms ease;
 }
-.speed-pill button.active {
+.speed-pill--turbo,
+.speed-pill--superTurbo {
   background: var(--hud-accent);
+  border-color: var(--hud-accent);
   color: white;
 }
-.speed-pill button:hover:not(.active) {
+.speed-pill:hover {
   color: var(--hud-fg);
+  border-color: var(--hud-accent);
+}
+.bet-board__side--right .speed-pill {
+  margin-left: 50px;
 }
 
 /* ─── Symbol tile ────────────────────────────────────────── */
@@ -1231,7 +1234,7 @@
     height: clamp(34px, 8vh, 46px);
   }
   /* Speed pill — very compact text so it fits the narrow height */
-  .bet-board .speed-pill button { padding: 4px 6px; font-size: 9px; }
+  .bet-board .speed-pill { padding: 4px 6px; font-size: 9px; min-width: 46px; }
   .hud-strip {
     padding: 3px 14px calc(var(--hud-safe-bottom) + 3px);
     min-height: 28px;

@@ -2,6 +2,7 @@
 // with a colored-gradient fallback so the HUD stays readable if art is missing.
 
 import type { JSX } from 'preact';
+import { symbolUrl } from '@/utils/symbolUrl';
 
 const SYMBOL_COLOR: Record<string, [string, string]> = {
   cherry: ['#ef4444', '#b91c1c'],
@@ -29,7 +30,7 @@ export function SymbolTile({ symbolId, size = 48 }: { symbolId: string; size?: n
       }}
     >
       <img
-        src={`/assets/symbols/${symbolId}.png`}
+        src={symbolUrl(symbolId)}
         alt={symbolId}
         onError={(e) => {
           // If art is missing, drop the image and the gradient shows through.

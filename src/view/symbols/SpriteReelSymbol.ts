@@ -41,6 +41,10 @@ export class SpriteReelSymbol extends Container {
   }
 
   playWin(): Promise<void> {
+    // Kill any in-progress tween before starting a new one — guards against
+    // being called twice on the same container (e.g. symbol wins on multiple lines).
+    this.winTween?.kill();
+    this.scale.set(1);
     return new Promise((resolve) => {
       this.winTween = gsap.to(this.scale, {
         x: 1.15,

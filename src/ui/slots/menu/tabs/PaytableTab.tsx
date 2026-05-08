@@ -1,6 +1,7 @@
 import type { JSX } from 'preact';
 import { GAME } from '@/config/gameConfig';
 import { PAYTABLE } from '@/config/paytable';
+import { symbolUrl } from '@/utils/symbolUrl';
 import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
 
@@ -43,7 +44,7 @@ export const PaytableTab = observer((): JSX.Element => {
               <td class="sp-pt-symbol">
                 <img
                   class="sp-pt-symbol__img"
-                  src={`/assets/symbols/${s.id}.png`}
+                  src={symbolUrl(s.id)}
                   alt=""
                   width="28"
                   height="28"

@@ -46,7 +46,17 @@ export class ReelsPresenter implements Disposable {
   }
 
   showWin(winlines: Winline[]): void {
-    const cells = winlines.flatMap((w) => w.positions);
+    // Deduplicate cells — multiple paylines can share the same cell (e.g. a
+    // WILD on reel 1 row 1 hit by 4 lines). Passing the same position twice
+    // causes pixi-reels to call playWin() on the same symbol container multiple
+    // times, stacking GSAP tweens that outlive the win phase and leave symbols stuck.
+    const seen = new Set<string>();
+    const cells = winlines.flatMap((w) => w.positions).filter(({ reel, row }) => {
+      const key = `${reel}:${row}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     this.engine.spotlight(cells);
   }
 
