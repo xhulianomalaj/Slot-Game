@@ -8,16 +8,22 @@
 //
 // Fix: track last resize dimensions, re-apply them after super.stopAnimation().
 // Remove this file once pixi-reels ships a fix upstream.
+//
+// NOTE: ColorMatrixFilter intentionally removed from the win animation.
+// When Pixi applies a filter to a container it renders that container to an
+// offscreen framebuffer sized to the element's SCREEN-SPACE bounds. On mobile
+// the symbol is ~50 CSS pixels, so the framebuffer is ~100px (2× DPR). The
+// scale tween then draws that 100px framebuffer at 135% — you see the
+// framebuffer stretched, not the original texture. Without a filter, Pixi
+// renders directly from the full-res texture each frame with no intermediary.
 
 import gsap from 'gsap';
-import { ColorMatrixFilter } from 'pixi.js';
 import { SpriteSymbol } from 'pixi-reels';
 
 export class FixedSpriteSymbol extends SpriteSymbol {
   private _lastW = 0;
   private _lastH = 0;
   private _winTimeline: gsap.core.Timeline | null = null;
-  private _glowFilter: ColorMatrixFilter | null = null;
 
   override resize(w: number, h: number): void {
     this._lastW = w;
@@ -28,43 +34,20 @@ export class FixedSpriteSymbol extends SpriteSymbol {
   override async playWin(): Promise<void> {
     this._killWinTimeline();
 
-    // Glow filter — brightness pulses on the container.
-    const filter = new ColorMatrixFilter();
-    this._glowFilter = filter;
-    this.view.filters = [filter];
-    const glow = { brightness: 1 };
-
     return new Promise((resolve) => {
       this._winTimeline = gsap
         .timeline({
-          onComplete: () => {
-            this._cleanupFilters();
-            resolve();
-          },
+          onComplete: () => resolve(),
         })
-        // 1) Pop up with overshoot
+        // 1) Pop up with overshoot — no filter so Pixi renders straight from texture
         .to(this.view.scale, { x: 1.35, y: 1.35, duration: 0.18, ease: 'back.out(2.5)' }, 0)
-        // 2) Brightness flash in sync with the pop
-        .to(glow, {
-          brightness: 2.8,
-          duration: 0.12,
-          ease: 'power2.out',
-          onUpdate: () => filter.brightness(glow.brightness, false),
-        }, 0)
-        // 3) Rotation wobble — left, right, centre
+        // 2) Rotation wobble — left, right, centre
         .to(this.view, { rotation:  0.13, duration: 0.09, ease: 'power1.inOut' }, 0.16)
         .to(this.view, { rotation: -0.13, duration: 0.09, ease: 'power1.inOut' }, 0.25)
         .to(this.view, { rotation:  0,    duration: 0.09, ease: 'power1.inOut' }, 0.34)
-        // 4) Brightness fades back
-        .to(glow, {
-          brightness: 1,
-          duration: 0.32,
-          ease: 'power2.in',
-          onUpdate: () => filter.brightness(glow.brightness, false),
-        }, 0.16)
-        // 5) Settle back to normal size with a small bounce
+        // 3) Settle back to normal size with a small bounce
         .to(this.view.scale, { x: 1, y: 1, duration: 0.22, ease: 'back.out(1.8)' }, 0.28)
-        // 6) Second mini-pulse for extra flair
+        // 4) Second mini-pulse for extra flair
         .to(this.view.scale, { x: 1.15, y: 1.15, duration: 0.13, ease: 'power2.out' }, 0.56)
         .to(this.view.scale, { x: 1,    y: 1,    duration: 0.18, ease: 'power2.inOut' }, 0.69);
     });
@@ -72,7 +55,6 @@ export class FixedSpriteSymbol extends SpriteSymbol {
 
   override stopAnimation(): void {
     this._killWinTimeline();
-    this._cleanupFilters();
     // Reset container transform before calling super (which resets sprite scale).
     this.view.rotation = 0;
     this.view.scale.set(1, 1);
@@ -84,14 +66,6 @@ export class FixedSpriteSymbol extends SpriteSymbol {
   private _killWinTimeline(): void {
     this._winTimeline?.kill();
     this._winTimeline = null;
-  }
-
-  private _cleanupFilters(): void {
-    if (this._glowFilter) {
-      this.view.filters = [];
-      this._glowFilter.destroy();
-      this._glowFilter = null;
-    }
   }
 }
 
