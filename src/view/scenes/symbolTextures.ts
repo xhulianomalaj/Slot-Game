@@ -13,6 +13,21 @@ export async function loadSymbolTextures(symbolIds: readonly string[]): Promise<
   // icons/ and symbols/, so assetpack omits the short alias for those).
   const aliases = symbolIds.map((id) => `symbols/${id}.png`);
   const loaded = await Assets.load(aliases);
-  // Re-key by plain id (without path/extension) for ReelSetBuilder compatibility.
-  return Object.fromEntries(symbolIds.map((id) => [id, loaded[`symbols/${id}.png`]])) as Record<string, Texture>;
+  const result = Object.fromEntries(symbolIds.map((id) => [id, loaded[`symbols/${id}.png`]])) as Record<string, Texture>;
+
+  // Disable auto-generated mipmaps on every symbol texture.
+  // On mobile, the reel panel is scaled down significantly, so symbols are
+  // displayed well below their native resolution. During win animations the
+  // scale tween crosses a mipmap boundary, causing the GPU to jump to a
+  // lower-res mipmap level — visually a sudden quality drop. With mipmaps
+  // off, the GPU always samples the full-res texture with bilinear filtering.
+  for (const texture of Object.values(result)) {
+    if (texture?.source) {
+      texture.source.autoGenerateMipmaps = false;
+      texture.source.mipLevelCount = 1;
+      texture.source.update();
+    }
+  }
+
+  return result;
 }

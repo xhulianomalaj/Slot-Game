@@ -25,7 +25,9 @@ export class SpriteReelSymbol extends Container {
   ) {
     super();
     this.sprite = new Sprite(texture);
-    this.sprite.anchor.set(0, 0); // slotplate convention — top-left
+    // Anchor at center so scale tweens on the sprite grow from its middle,
+    // not the top-left corner. Position is set to cell center in resize().
+    this.sprite.anchor.set(0.5);
     this.addChild(this.sprite);
   }
 
@@ -44,20 +46,20 @@ export class SpriteReelSymbol extends Container {
     // Kill any in-progress tween before starting a new one — guards against
     // being called twice on the same container (e.g. symbol wins on multiple lines).
     this.winTween?.kill();
-    this.scale.set(1);
+    this.sprite.scale.set(1);
     return new Promise((resolve) => {
-      // Peak scale kept at 1.08 — enough to feel punchy but small enough that
-      // the symbol stays inside the reel column mask on all screen sizes.
-      // Scaling from center (pivot set in resize()) prevents right/down drift.
-      this.winTween = gsap.to(this.scale, {
-        x: 1.08,
-        y: 1.08,
+      // Tween the *sprite's* scale (anchor 0.5 → grows from center) rather than
+      // the container's scale (which the reel engine positions externally).
+      // Peak 1.1 is punchy on desktop and safe on mobile — stays inside the cell.
+      this.winTween = gsap.to(this.sprite.scale, {
+        x: 1.1,
+        y: 1.1,
         duration: 0.22,
         yoyo: true,
         repeat: 3,
         ease: 'power2.inOut',
         onComplete: () => {
-          this.scale.set(1);
+          this.sprite.scale.set(1);
           resolve();
         },
       });
@@ -67,7 +69,7 @@ export class SpriteReelSymbol extends Container {
   stopAnimation(): void {
     this.winTween?.kill();
     this.winTween = null;
-    this.scale.set(1);
+    this.sprite.scale.set(1);
   }
 
   resize(width: number, height: number): void {
@@ -76,10 +78,9 @@ export class SpriteReelSymbol extends Container {
     // previous state.
     this.sprite.width = width;
     this.sprite.height = height;
-    this.sprite.position.set(0, 0);
-    // Pivot at center so win-scale animation grows outward equally on all sides,
-    // staying inside the reel column mask instead of drifting right/down.
-    this.pivot.set(width / 2, height / 2);
-    this.position.set(width / 2, height / 2);
+    // With anchor 0.5, the sprite must be positioned at cell center so it
+    // renders in the same place as before. The container's position/pivot
+    // are left untouched — the reel engine controls the container.
+    this.sprite.position.set(width / 2, height / 2);
   }
 }
