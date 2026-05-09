@@ -45,6 +45,12 @@ export class MainScene implements Disposable {
       // animations and causing mipmap-switching artifacts.
       resolution: Math.min(window.devicePixelRatio || 1, 2),
       autoDensity: true,
+      // Snap all sprite/container positions to whole pixels every frame.
+      // On mobile, symbols are tiny (50-70px on screen) so a 0.25px sub-pixel
+      // offset is a meaningful fraction of the symbol — during scale tweens
+      // the sampling grid shifts every frame, causing visible shimmering.
+      // roundPixels eliminates this at zero quality cost on desktop.
+      roundPixels: true,
     });
     // Expose app to the PixiJS DevTools browser extension.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

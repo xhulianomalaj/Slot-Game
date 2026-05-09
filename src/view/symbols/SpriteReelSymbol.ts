@@ -83,8 +83,9 @@ export class SpriteReelSymbol extends Container {
   resize(width: number, height: number): void {
     this.sprite.width = width;
     this.sprite.height = height;
-    // With anchor 0.5, the sprite must be positioned at cell center.
-    this.sprite.position.set(width / 2, height / 2);
+    // Round to whole pixels — fractional centers cause sub-pixel sampling
+    // shifts during the scale tween that are very visible on small mobile screens.
+    this.sprite.position.set(Math.round(width / 2), Math.round(height / 2));
     // Snapshot the scale Pixi computed from width/height so animations
     // can tween relative to it and restore it precisely afterwards.
     this.fittedScaleX = this.sprite.scale.x;
