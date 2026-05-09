@@ -15,14 +15,17 @@ export class WinShowPhase implements Phase {
 
   async enter(ctx: PhaseContext): Promise<void> {
     this.ctx = ctx;
-    const { winlines, totalWin } = ctx.stores.data;
+    const { winlines, totalWin, serverBalance } = ctx.stores.data;
     const hold = winlines.length > 0 && totalWin > 0 ? WIN_HOLD_MS : AUTOSPIN_DELAY_MS;
+
+    // Apply the server's authoritative post-win balance now — reels have
+    // landed, so the HUD update is in sync with the win reveal.
+    if (serverBalance !== null) {
+      ctx.stores.balance.setBalance(serverBalance);
+    }
 
     if (winlines.length > 0 && totalWin > 0) {
       ctx.reels.showWin(winlines);
-      // The server returns post-win balance in `SpinResponse.balance`, which
-      // SpinPhase already reconciled. We only update the win-counter — calling
-      // `credit()` here would double-count the wallet.
       ctx.stores.balance.setLastWin(totalWin);
       ctx.stores.ui.recordWin(totalWin);
     }

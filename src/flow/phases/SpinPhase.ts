@@ -17,10 +17,8 @@ export class SpinPhase implements Phase {
 
     const response = await ctx.network.spin({ bet: ctx.stores.balance.bet });
     ctx.stores.data.setResponse(response);
-    // Reconcile to the server's authoritative POST-WIN balance. WinShowPhase
-    // does NOT credit `totalWin` again — it only updates `lastWin` for the
-    // counter. See `domain/types.ts` SpinResponse.balance for the contract.
-    ctx.stores.balance.setBalance(response.balance);
+    // Balance is NOT applied here — it's deferred to WinShowPhase so the HUD
+    // doesn't jump while the reels are still spinning. See WinShowPhase.enter().
 
     await ctx.fsm.transition('stopSpin');
   }

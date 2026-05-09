@@ -9,6 +9,8 @@ export class DataStore {
   winlines: Winline[] = [];
   totalWin = 0;
   teasingReels: number[] = [];
+  /** Server's authoritative post-win balance — applied only when win reveal starts. */
+  serverBalance: number | null = null;
 
   constructor() {
     makeObservable(this, {
@@ -16,6 +18,7 @@ export class DataStore {
       winlines: observable,
       totalWin: observable,
       teasingReels: observable,
+      serverBalance: observable,
       setResponse: action,
       clear: action,
     });
@@ -26,11 +29,13 @@ export class DataStore {
     this.winlines = response.winlines;
     this.totalWin = response.totalWin;
     this.teasingReels = response.teasingReels ?? [];
+    this.serverBalance = response.balance;
   }
 
   clear(): void {
     this.winlines = [];
     this.totalWin = 0;
     this.teasingReels = [];
+    this.serverBalance = null;
   }
 }
