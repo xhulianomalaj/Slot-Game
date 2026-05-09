@@ -18,6 +18,9 @@ import { Container, Sprite, type Texture } from 'pixi.js';
 export class SpriteReelSymbol extends Container {
   private sprite: Sprite;
   private winTween: gsap.core.Tween | null = null;
+  /** Cell-fitted scale set by resize() — restored after every animation. */
+  private fittedScaleX = 1;
+  private fittedScaleY = 1;
 
   constructor(
     public readonly id: string,
@@ -43,44 +46,48 @@ export class SpriteReelSymbol extends Container {
   }
 
   playWin(): Promise<void> {
-    // Kill any in-progress tween before starting a new one — guards against
-    // being called twice on the same container (e.g. symbol wins on multiple lines).
+    // Kill any in-progress tween before starting a new one.
     this.winTween?.kill();
-    this.sprite.scale.set(1);
+    // Use fromTo so GSAP knows the exact start value (the cell-fitted scale).
+    // Using gsap.to() with a prior scale.set(1) was the bug: it snapped the
+    // sprite to native texture size and left it there after onComplete.
+    const sx = this.fittedScaleX;
+    const sy = this.fittedScaleY;
     return new Promise((resolve) => {
-      // Tween the *sprite's* scale (anchor 0.5 → grows from center) rather than
-      // the container's scale (which the reel engine positions externally).
-      // Peak 1.1 is punchy on desktop and safe on mobile — stays inside the cell.
-      this.winTween = gsap.to(this.sprite.scale, {
-        x: 1.1,
-        y: 1.1,
-        duration: 0.22,
-        yoyo: true,
-        repeat: 3,
-        ease: 'power2.inOut',
-        onComplete: () => {
-          this.sprite.scale.set(1);
-          resolve();
+      this.winTween = gsap.fromTo(
+        this.sprite.scale,
+        { x: sx, y: sy },
+        {
+          x: sx * 1.1,
+          y: sy * 1.1,
+          duration: 0.22,
+          yoyo: true,
+          repeat: 3,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            this.sprite.scale.set(sx, sy);
+            resolve();
+          },
         },
-      });
+      );
     });
   }
 
   stopAnimation(): void {
     this.winTween?.kill();
     this.winTween = null;
-    this.sprite.scale.set(1);
+    // Restore cell-fitted scale so the sprite looks correct after interruption.
+    this.sprite.scale.set(this.fittedScaleX, this.fittedScaleY);
   }
 
   resize(width: number, height: number): void {
-    // Re-fit the sprite to the cell. Called on every symbol swap by the
-    // reel engine — always repaint from scratch here, never assume
-    // previous state.
     this.sprite.width = width;
     this.sprite.height = height;
-    // With anchor 0.5, the sprite must be positioned at cell center so it
-    // renders in the same place as before. The container's position/pivot
-    // are left untouched — the reel engine controls the container.
+    // With anchor 0.5, the sprite must be positioned at cell center.
     this.sprite.position.set(width / 2, height / 2);
+    // Snapshot the scale Pixi computed from width/height so animations
+    // can tween relative to it and restore it precisely afterwards.
+    this.fittedScaleX = this.sprite.scale.x;
+    this.fittedScaleY = this.sprite.scale.y;
   }
 }

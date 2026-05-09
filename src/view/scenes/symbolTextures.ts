@@ -15,17 +15,20 @@ export async function loadSymbolTextures(symbolIds: readonly string[]): Promise<
   const loaded = await Assets.load(aliases);
   const result = Object.fromEntries(symbolIds.map((id) => [id, loaded[`symbols/${id}.png`]])) as Record<string, Texture>;
 
-  // Disable auto-generated mipmaps on every symbol texture.
-  // On mobile, the reel panel is scaled down significantly, so symbols are
-  // displayed well below their native resolution. During win animations the
-  // scale tween crosses a mipmap boundary, causing the GPU to jump to a
-  // lower-res mipmap level — visually a sudden quality drop. With mipmaps
-  // off, the GPU always samples the full-res texture with bilinear filtering.
+  // Prevent mipmap-level switching during win scale animations.
+  // On mobile the reel panel is scaled down significantly, so symbols are
+  // displayed well below their native resolution. As the scale tween runs,
+  // the GPU's LOD calculation crosses a mipmap boundary and the driver snaps
+  // to a lower-res mip level mid-animation — visible as a sudden quality drop.
+  //
+  // lodMaxClamp = 0 is the correct sampler-level fix: it clamps the GPU's
+  // level-of-detail selection to mip level 0 (full resolution) regardless of
+  // how small the symbol appears on screen. The sampler change takes effect
+  // immediately on already-uploaded textures, unlike post-load source mutations
+  // (autoGenerateMipmaps / mipLevelCount) which don't re-upload GPU data.
   for (const texture of Object.values(result)) {
-    if (texture?.source) {
-      texture.source.autoGenerateMipmaps = false;
-      texture.source.mipLevelCount = 1;
-      texture.source.update();
+    if (texture?.source?.style) {
+      texture.source.style.lodMaxClamp = 0;
     }
   }
 
