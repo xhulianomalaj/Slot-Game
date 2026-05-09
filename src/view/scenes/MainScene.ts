@@ -40,7 +40,10 @@ export class MainScene implements Disposable {
       resizeTo: host,
       background: THEME.clearColor,
       antialias: true,
-      resolution: window.devicePixelRatio || 1,
+      // Cap at 2 — DPR 3+ phones gain no visible quality over 2 but push
+      // 2.25× more pixels, reducing GPU bandwidth for texture sampling during
+      // animations and causing mipmap-switching artifacts.
+      resolution: Math.min(window.devicePixelRatio || 1, 2),
       autoDensity: true,
     });
     // Expose app to the PixiJS DevTools browser extension.

@@ -111,11 +111,20 @@
 @media (max-width: 640px) {
   .sp-menu {
     width: 100vw;
+    /* dvh shrinks when the iOS Safari URL bar is visible, so the panel never
+       overflows behind it. Falls back to 100vh on browsers that don't support dvh. */
     height: 100vh;
+    height: 100dvh;
     border-radius: 0;
     grid-template-columns: 1fr;
-    grid-template-rows: 48px auto 1fr;
+    grid-template-rows: auto auto 1fr;
     grid-template-areas: "header" "tabs" "content";
+  }
+  .sp-menu__header {
+    /* Push the header (and therefore the close button) below the iOS status
+       bar / URL bar. env() is ignored on non-Apple browsers. */
+    padding-top: max(14px, env(safe-area-inset-top));
+    min-height: calc(48px + env(safe-area-inset-top));
   }
   .sp-menu__tabs {
     flex-direction: row;
@@ -243,6 +252,10 @@
   font-size: 11.5px;
   color: rgba(231, 238, 240, 0.5);
   margin-top: 2px;
+}
+/* Keyboard-only settings are irrelevant on touch devices — hide them. */
+@media (pointer: coarse) {
+  .sp-settings__keyboard-only { display: none; }
 }
 
 /* === toggle === */

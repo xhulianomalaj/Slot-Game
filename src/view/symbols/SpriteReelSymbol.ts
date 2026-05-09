@@ -46,10 +46,13 @@ export class SpriteReelSymbol extends Container {
     this.winTween?.kill();
     this.scale.set(1);
     return new Promise((resolve) => {
+      // Peak scale kept at 1.08 — enough to feel punchy but small enough that
+      // the symbol stays inside the reel column mask on all screen sizes.
+      // Scaling from center (pivot set in resize()) prevents right/down drift.
       this.winTween = gsap.to(this.scale, {
-        x: 1.15,
-        y: 1.15,
-        duration: 0.25,
+        x: 1.08,
+        y: 1.08,
+        duration: 0.22,
         yoyo: true,
         repeat: 3,
         ease: 'power2.inOut',
@@ -74,5 +77,9 @@ export class SpriteReelSymbol extends Container {
     this.sprite.width = width;
     this.sprite.height = height;
     this.sprite.position.set(0, 0);
+    // Pivot at center so win-scale animation grows outward equally on all sides,
+    // staying inside the reel column mask instead of drifting right/down.
+    this.pivot.set(width / 2, height / 2);
+    this.position.set(width / 2, height / 2);
   }
 }

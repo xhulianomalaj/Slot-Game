@@ -21,9 +21,11 @@ export const SettingsTab = observer((): JSX.Element => {
 
   return (
     <div class="sp-settings">
-      <Row label="Spacebar to spin" hint="Press Space anywhere to start a spin.">
-        <Toggle on={ui.spaceToSpin} onChange={() => ui.toggleSpaceToSpin()} label="Spacebar to spin" />
-      </Row>
+      <div class="sp-settings__keyboard-only">
+        <Row label="Spacebar to spin" hint="Press Space anywhere to start a spin.">
+          <Toggle on={ui.spaceToSpin} onChange={() => ui.toggleSpaceToSpin()} label="Spacebar to spin" />
+        </Row>
+      </div>
 
       <Row label="Spin speed">
         <Segmented

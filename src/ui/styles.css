@@ -450,6 +450,10 @@
   font-weight: 500;
   white-space: nowrap;
 }
+/* Touch devices have no keyboard — hide the spin label entirely. */
+@media (pointer: coarse) {
+  .spin .spin-hint { display: none; }
+}
 .spin-autospin-badge {
   position: absolute;
   top: -6px;
