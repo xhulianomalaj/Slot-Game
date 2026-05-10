@@ -56,6 +56,13 @@
   color: rgba(231, 238, 240, 0.42);
 }
 
+/* Hide info button on mobile — burger menu covers it */
+@media (max-width: 639px), (max-height: 540px) and (orientation: landscape) {
+  .sp-header__btn[aria-label="Game info"] {
+    display: none;
+  }
+}
+
 .sp-header__clock {
   font-variant-numeric: tabular-nums;
   color: rgba(231, 238, 240, 0.78);

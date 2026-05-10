@@ -1,11 +1,10 @@
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { GAME } from '@/config/gameConfig';
-import { requestExit } from '@/infrastructure/host';
 import { GsapTicker } from '@/infrastructure/timing';
 import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
-import { ExitIcon, InfoIcon, SoundOffIcon, SoundOnIcon } from './icons';
+import { InfoIcon, SoundOffIcon, SoundOnIcon } from './icons';
 import './header.css';
 
 function formatHHMM(d: Date): string {
@@ -32,23 +31,11 @@ function useClock(): string {
 }
 
 export const HeaderSlot = observer((): JSX.Element | null => {
-  const { ui, modals } = useStores();
+  const { ui } = useStores();
   const time = useClock();
   if (ui.bootStage !== 'ready') return null;
 
   const soundOn = ui.soundEnabled;
-
-  const onExit = async () => {
-    const ok = await modals.confirm({
-      icon: 'warning',
-      title: 'Leave game?',
-      description: 'Your current round will end. Are you sure you want to exit?',
-      confirm: 'Leave',
-      cancel: 'Stay',
-      danger: true,
-    });
-    if (ok) requestExit();
-  };
 
   return (
     <header class="sp-header" data-testid="header">
@@ -66,9 +53,6 @@ export const HeaderSlot = observer((): JSX.Element | null => {
       </button>
       <button type="button" class="sp-header__btn" aria-label="Game info" onClick={() => ui.openMenu('info')}>
         <InfoIcon />
-      </button>
-      <button type="button" class="sp-header__btn" aria-label="Exit game" onClick={onExit}>
-        <ExitIcon />
       </button>
       <time class="sp-header__clock" dateTime={new Date().toISOString()}>
         {time}

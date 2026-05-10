@@ -3,7 +3,7 @@ import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
 import { BuyBonus } from './BuyBonus';
 import { IconButton } from './IconButton';
-import { IconMinus, IconPlus, IconRepeat } from './Icons';
+import { IconMenu, IconMinus, IconPlus, IconRepeat } from './Icons';
 import { SpeedPill } from './SpeedPill';
 import { SpinButton } from './SpinButton';
 
@@ -35,6 +35,16 @@ export const BottomBar = observer(() => {
   return (
     <div class="bet-board-wrap" data-pixi-label="hud">
     <div class="bet-board" data-testid="hud-bottom">
+      {/* Mobile-only hamburger — hidden on desktop via CSS */}
+      <button
+        type="button"
+        class="icon-btn bet-board__menu-btn"
+        aria-label="Open menu"
+        onClick={() => ui.openMenu()}
+      >
+        <IconMenu />
+      </button>
+
       {/* LEFT — BuyBonus + Balance */}
       <div class="bet-board__side bet-board__side--left">
         <BuyBonus />

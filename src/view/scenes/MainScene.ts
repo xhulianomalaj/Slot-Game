@@ -82,8 +82,8 @@ export class MainScene implements Disposable {
       hudBottom: 280,
       // Mobile landscape (phones < 500px tall): push reels down past the header
       // and give the bet board more room so nothing overlaps.
-      hudTopLandscape: 310,
-      hudBottomLandscape: 240,
+      hudTopLandscape: 330,
+      hudBottomLandscape: 150,
       offsetY: -40,
     });
     this.app.stage.addChild(this.reelsFrame);

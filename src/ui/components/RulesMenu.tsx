@@ -3,7 +3,6 @@ import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
 import { RenderBlock } from '@/ui/rules/blocks';
 import { RULES } from '@/ui/rules/config';
-import { IconClose } from './Icons';
 
 export const RulesMenu = observer(() => {
   const { ui } = useStores();
@@ -17,15 +16,7 @@ export const RulesMenu = observer(() => {
     <div class="fullscreen rules" data-testid="rules-menu" role="dialog" aria-label={t('rules.title')}>
       <div class="fullscreen__header">
         <div class="fullscreen__title">{t('rules.title')}</div>
-        <button
-          type="button"
-          class="icon-btn"
-          aria-label={t('menu.close')}
-          data-testid="rules-close"
-          onClick={() => ui.closeRules()}
-        >
-          <IconClose />
-        </button>
+
       </div>
 
       <div class="rules-tabs" role="tablist" aria-label={t('rules.title')}>

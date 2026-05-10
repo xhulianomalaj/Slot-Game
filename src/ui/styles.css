@@ -1124,78 +1124,178 @@
  * Responsive: mobile (default) → tablet → desktop
  * ─────────────────────────────────────────────────────────── */
 
+/* Mobile hamburger — only visible on portrait touch screens */
+.bet-board__menu-btn {
+  display: none;
+}
+
 /* MOBILE PORTRAIT — phones held upright.
- * 2-row flex layout (like Le Digger):
- *   Row 1: [BuyBonus | Balance] ........... [Bet/Win | Autospin]
- *   Row 2:          [−] [+]   ( SPIN )
- * SpeedPill hidden on portrait — accessible via ⓘ menu.
- * NOTE: orientation check dropped — DevTools custom viewports don't fire it. */
+ * Le Bunny-style layout — no background panel, two rows float over the canvas.
+ *
+ * Row 1 (control):  [BUY BONUS]  ···  [−]  [⟳ SPIN]  [+]  ···
+ * Row 2 (info):     [☰]  BALANCE €…  ·············  BET €…  [↻]
+ *
+ * Technique: display:contents on ALL structural divs dissolves them into the
+ * outer bet-board flex, giving full control via CSS `order`. A zero-height
+ * ::after at order 9 forces a row break between the control row (1-8) and the
+ * info row (10-14). margin-left:auto on [−] and margin-right:auto on [+]
+ * center the spin group while BUY BONUS stays left-anchored.
+ */
 @media (max-width: 639px) {
+  .bet-board__menu-btn {
+    display: inline-flex;
+  }
+
   .bet-board {
     --spin-size: 72px;
-    --icon-btn-size: 34px;
-    /* Fill full viewport width, no zoom trick needed */
+    --icon-btn-size: 36px;
+
     width: 100%;
     zoom: 1;
-    /* Switch to wrapping flexbox so left/right become row 1, center row 2 */
+
+    /* Strip the dark panel — controls float over the canvas */
+    background: none;
+    border-top: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    column-gap: 90px;
-    row-gap: 6px;
-    padding: 8px 12px 18px;
+    box-sizing: border-box;
+    padding: 8px 8px calc(var(--hud-safe-bottom) + 14px);
   }
 
-  /* Row 1 — left: BuyBonus + Balance */
-  .bet-board__side--left {
-    order: 1;
-    flex: 0 0 auto;
-    min-width: 0;
-    gap: 8px;
-    justify-content: flex-start;
+  /* Two pseudo-elements in the control row:
+   * ::before  — order 6, ghost spacer matching BUY BONUS width (44px).
+   *             Placed after [+] so the auto-margins on [−] and [+] share
+   *             space symmetrically → spin group is always dead-centered.
+   * ::after   — order 9, full-width row-break sentinel. */
+  .bet-board::before {
+    content: '';
+    order: 6;
+    flex: 0 0 36px;   /* slightly less than BUY BONUS (44px) → nudges group ~4px right */
+    height: 0;
   }
-
-  /* Row 1 — right: Bet/Win */
-  .bet-board__side--right {
-    order: 2;
-    flex: 0 0 auto;
-    min-width: 0;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-
-  /* Row 2 — [−][+] SPIN [↻], full width, nudged slightly left */
-  .bet-board__center {
-    order: 3;
+  .bet-board::after {
+    content: '';
+    order: 9;
     width: 100%;
-    justify-content: center;
-    gap: 14px;
+    height: 0;
   }
 
-  /* Stepper stays vertical (− above +) beside spin */
+  /* Dissolve all structural containers — every control becomes a direct
+   * flex child of .bet-board so CSS order can place it freely. */
+  .bet-board__side--left,
+  .bet-board__center,
+  .bet-board__side--right,
   .bet-board__stepper {
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 0;
+    display: contents;
   }
 
-  .bet-board__center .icon-btn {
-    width: 34px;
-    height: 34px;
-  }
+  /* ── Row 1 — control row ─────────────────────────────── */
 
-  .bet-board .kv__label { font-size: 10px; }
-  .bet-board .kv__value { font-size: 14px; }
-
-  /* Coin sized down so row 1 stays slim */
+  /* BuyBonus anchors the far-left of the control row */
   .bet-board .buy-bonus {
-    width: 38px;
-    height: 38px;
+    order: 2;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
   }
   .bet-board .buy-bonus__label { font-size: 9px; }
 
-  /* Speed pill hidden — too wide for portrait row 1 */
+  /* [−] left of spin; margin-left:auto + ghost spacer on right = true center */
+  .bet-board [aria-label="Decrease bet"] {
+    order: 3;
+    margin-left: auto;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Spin button */
+  .bet-board .spin {
+    order: 4;
+  }
+
+  /* [+] right of spin; margin-right:auto absorbs remaining space to the right */
+  .bet-board [aria-label="Increase bet"] {
+    order: 5;
+    margin-right: auto;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ── Row 2 — info row ────────────────────────────────── */
+
+  /* Top gap between control row and info row */
+  .bet-board__menu-btn,
+  .bet-board [data-pixi-label="balance"],
+  .bet-board .bet-board__kv-slot,
+  .bet-board [data-pixi-label="autoplay"] {
+    margin-top: 20px;
+  }
+
+  /* Hamburger: far-left corner of info row */
+  .bet-board__menu-btn {
+    order: 10;
+    flex-shrink: 0;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+    margin-right: 4px;
+  }
+
+  /* Balance kv: left side, stacked label above value — content-sized, no expansion */
+  .bet-board [data-pixi-label="balance"] {
+    order: 11;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  /* Bet/Win slot: margin-left:auto pushes it + autoplay flush to right edge */
+  .bet-board .bet-board__kv-slot {
+    order: 13;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+  .bet-board .bet-board__kv-slot .kv {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  /* Autospin: rightmost item — margin-left:0 so container padding keeps it on-screen */
+  .bet-board [data-pixi-label="autoplay"] {
+    order: 14;
+    flex-shrink: 0;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Speed pill hidden — accessible via ☰ menu */
   .bet-board .speed-pill { display: none; }
+
+  /* Text sizes + shadows for readability over the canvas */
+  .bet-board .kv__label { font-size: 10px; }
+  .bet-board .kv__value { font-size: 14px; }
+  .bet-board .kv__label,
+  .bet-board .kv__value {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  }
 
   .spin .spin-hint {
     bottom: -16px;
@@ -1212,39 +1312,167 @@
 }
 
 /* MOBILE LANDSCAPE — phones rotated.
- * Width is plentiful (≥568px) but height is tight (≤540px).
- * Keep 1-row zoom grid but shrink aggressively and cut vertical padding.
- * At 568px: zoom ≈ 0.84, spin ≈ 55px — still comfortably tappable. */
+ * Le Bunny-style: controls split to left and right edges, info along the bottom.
+ *
+ * Left edge (top→bottom):  [BUY BONUS]  [☰]
+ * Right edge (top→bottom): [+]  [⟳ SPIN]  [−]  [↻]
+ * Bottom strip:            BALANCE €…     BET €…
+ *
+ * Technique: bet-board becomes position:fixed covering the full viewport with
+ * pointer-events:none, then each control is position:absolute to its edge.
+ * display:contents on structural divs dissolves them so their children become
+ * direct children of .bet-board and can be positioned independently.
+ */
 @media (max-height: 540px) and (orientation: landscape) {
-  :root { --pad-x: 14px; }
+  /* Wrapper collapses — bet-board is taken out of flow */
   .bet-board-wrap {
-    padding-bottom: clamp(3px, 1vh, 8px);
+    padding-bottom: 0;
+    margin-top: 0;
   }
+
   .bet-board {
-    --spin-size: 66px;
-    --icon-btn-size: 30px;
-    width: 680px;
-    zoom: clamp(0.72, calc(100vw / 680px), 1);
-    column-gap: 14px;
-    padding: 5px 14px 20px;
+    --spin-size: 70px;
+
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: auto;
+    zoom: 1;
+
+    /* No panel */
+    background: none;
+    border-top: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    /* Children with position:absolute need a containing block */
+    pointer-events: none;
   }
-  .bet-board__side { gap: 10px; }
-  .bet-board__stepper { gap: 6px; margin-top: 8px; }
-  .bet-board__center .icon-btn { width: 30px; height: 30px; }
-  .bet-board .kv__label { font-size: 10px; }
-  .bet-board .kv__value { font-size: 13px; }
+
+  /* All direct children are interactive */
+  .bet-board > * {
+    pointer-events: auto;
+  }
+
+  /* Dissolve structural wrappers so children can be positioned freely */
+  .bet-board__side--left,
+  .bet-board__center,
+  .bet-board__side--right,
+  .bet-board__stepper {
+    display: contents;
+  }
+
+  /* ── Left edge ──────────────────────────────────────── */
+
+  /* BUY BONUS — upper-left */
   .bet-board .buy-bonus {
-    width: clamp(34px, 8vh, 46px);
-    height: clamp(34px, 8vh, 46px);
+    position: absolute;
+    bottom: calc(var(--hud-safe-bottom) + 64px);
+    left: 14px;
+    width: 52px;
+    height: 52px;
   }
-  /* Speed pill — very compact text so it fits the narrow height */
-  .bet-board .speed-pill { padding: 4px 6px; font-size: 9px; min-width: 46px; }
-  .hud-strip {
-    padding: 3px 14px calc(var(--hud-safe-bottom) + 3px);
-    min-height: 28px;
+  .bet-board .buy-bonus__label { font-size: 9px; }
+
+  /* Hamburger — bottom-left */
+  .bet-board__menu-btn {
+    display: inline-flex;
+    position: absolute;
+    bottom: calc(var(--hud-safe-bottom) + 10px);
+    left: 14px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
   }
-  .hud-strip__left .icon-btn { width: 28px; height: 28px; }
-  .spin .spin-hint { bottom: -11px; font-size: 8px; }
+
+  /* ── Right edge ─────────────────────────────────────── */
+
+  /* [+] — above spin, right.
+   * Centre of spin at 45%, half-height 35px, gap 8px, button 40px tall.
+   * Top edge = 45% - 35px - 8px - 40px = calc(45% - 83px) */
+  .bet-board [aria-label="Increase bet"] {
+    position: absolute;
+    right: 14px;
+    top: calc(47% - 89px);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Spin — right side */
+  .bet-board .spin {
+    position: absolute;
+    right: 14px;
+    top: 47%;
+    transform: translateY(-50%);
+    --spin-size: 70px;
+    width: var(--spin-size);
+    height: var(--spin-size);
+  }
+  .bet-board .spin .spin-hint { display: none; }
+
+  /* [−] — below spin, right.
+   * Top edge = 45% + 35px + 8px = calc(45% + 43px) */
+  .bet-board [aria-label="Decrease bet"] {
+    position: absolute;
+    right: 14px;
+    top: calc(47% + 49px);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Autoplay — bottom-right */
+  .bet-board [data-pixi-label="autoplay"] {
+    position: absolute;
+    right: 14px;
+    bottom: calc(var(--hud-safe-bottom) + 10px);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background: rgba(8, 10, 14, 0.72);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* ── Bottom strip ───────────────────────────────────── */
+
+  /* Balance — bottom-left (after the hamburger) */
+  .bet-board [data-pixi-label="balance"] {
+    position: absolute;
+    bottom: calc(var(--hud-safe-bottom) + 10px);
+    left: 64px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  /* Bet/Win — bottom-center */
+  .bet-board .bet-board__kv-slot {
+    position: absolute;
+    bottom: calc(var(--hud-safe-bottom) + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .bet-board .bet-board__kv-slot .kv {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  /* Speed pill hidden */
+  .bet-board .speed-pill { display: none; }
+
+  /* Text sizes + readability shadows */
+  .bet-board .kv__label { font-size: 10px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+  .bet-board .kv__value { font-size: 13px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
+
   .rb-paylines { grid-template-columns: repeat(3, 1fr); }
 }
 

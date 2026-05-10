@@ -35,11 +35,3 @@ export const InfoIcon = (): JSX.Element => (
     <path d="M12 11v5M12 8v.01" />
   </svg>
 );
-
-export const ExitIcon = (): JSX.Element => (
-  <svg {...props} role="img" aria-label="Exit">
-    <title>Exit</title>
-    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
-    <path d="M16 16l4-4-4-4M20 12H10" />
-  </svg>
-);
