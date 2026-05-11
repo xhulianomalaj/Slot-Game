@@ -27,8 +27,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.1(mobx@6.15.1)(react@19.2.5)
       pixi-reels:
-        specifier: ^0.1.0
-        version: 0.1.0(gsap@3.15.0)(pixi.js@8.18.1)
+        specifier: latest
+        version: 0.4.0(gsap@3.15.0)(pixi.js@8.18.1)
       pixi.js:
         specifier: ^8.11.0
         version: 8.18.1
@@ -2041,8 +2041,8 @@ packages:
     resolution: {integrity: sha512-o8mkY4E/+LNUf6LzX96ht6k6CEDi65k9G2rjMtBe9Oo+VPKSvl+0GKHuH/AlG+GA5LPG/i5hrekkxUc3s2HU+Q==}
     hasBin: true
 
-  pixi-reels@0.1.0:
-    resolution: {integrity: sha512-oItUd/mfn5dvAp29DezR4Hazr/WYJBtfQYWLfJXu5rO4A6vYrIXdjiUCVQaMDmVMVn5L8FJhlTONEka7B4/+Uw==}
+  pixi-reels@0.4.0:
+    resolution: {integrity: sha512-p0eReSpJ7OKPU0BNMa1MCSasZH2bewJqdN50g6P71uU18ybwnN2SImfOnXv76hta01EfOqGdLe0mpV/g79E95g==}
     peerDependencies:
       '@esotericsoftware/spine-pixi-v8': ^4.2.110
       gsap: ^3.15.0
@@ -4455,7 +4455,7 @@ snapshots:
     dependencies:
       pngjs: 6.0.0
 
-  pixi-reels@0.1.0(gsap@3.15.0)(pixi.js@8.18.1):
+  pixi-reels@0.4.0(gsap@3.15.0)(pixi.js@8.18.1):
     dependencies:
       gsap: 3.15.0
       pixi.js: 8.18.1

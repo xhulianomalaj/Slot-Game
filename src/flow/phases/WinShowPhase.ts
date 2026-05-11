@@ -2,6 +2,10 @@ import type { Phase, PhaseContext } from '../Phase';
 
 const WIN_HOLD_MS = 1500;
 const AUTOSPIN_DELAY_MS = 450;
+// Each win in the cycle takes roughly: cell animation (~870ms) + stagger
+// overhead + the 400ms gap between wins. Budget 1400ms per win so that
+// every win gets its labels + symbol animation before clearWin() fires.
+const MS_PER_WIN = 1400;
 
 // WinShowPhase plays back the winlines the SERVER returned. It does not
 // compute wins, does not evaluate paylines, does not know the paytable.
@@ -16,7 +20,9 @@ export class WinShowPhase implements Phase {
   async enter(ctx: PhaseContext): Promise<void> {
     this.ctx = ctx;
     const { winlines, totalWin, serverBalance } = ctx.stores.data;
-    const hold = winlines.length > 0 && totalWin > 0 ? WIN_HOLD_MS : AUTOSPIN_DELAY_MS;
+    const hold = winlines.length > 0 && totalWin > 0
+      ? Math.max(WIN_HOLD_MS, winlines.length * MS_PER_WIN)
+      : AUTOSPIN_DELAY_MS;
 
     // Apply the server's authoritative post-win balance now — reels have
     // landed, so the HUD update is in sync with the win reveal.

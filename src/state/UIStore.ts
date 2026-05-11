@@ -261,7 +261,11 @@ export class UIStore {
     this.autospinStopping = false;
   }
   stopAutospin(): void {
-    if (this.isAutospinning) this.autospinStopping = true;
+    // Only enter the "waiting for current spin to finish" state if a spin
+    // is actually running. If autoplay was toggled on then off before any
+    // spin started, skip that state so autospinStopping doesn't get stuck
+    // true with no setSpinning(false) coming to clear it.
+    if (this.isAutospinning && this.spinning) this.autospinStopping = true;
     this.autospinRemaining = 0;
   }
   beginAutospinRound(): void {

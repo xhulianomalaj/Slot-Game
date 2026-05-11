@@ -1,16 +1,16 @@
-// StubReelsEngine — a no-op implementation of `ReelsEngine` for test mode.
+﻿// StubReelsEngine — a no-op implementation of `ReelsEngine` for test mode.
 //
 // Real pixi-reels runs a multi-second animation per spin and the public
 // `skip()` only works while the spin controller is "active" — once the
 // landing sequence starts, calling skip is a no-op. For behavioral tests
-// we just want the contract: spin starts, setResult lands, spotlight runs.
+// we just want the contract: spin starts, setResult lands, win show runs.
 // Visuals belong to screenshot tests, not scenario tests.
 //
 // Composition wires this in when `testMode` is on, so the FSM phases
 // transition through their awaits in microseconds and the bridge can drive
 // hundreds of rounds in a single test.
 
-import type { Grid } from '@/domain/types';
+import type { Grid, Winline } from '@/domain/types';
 import type { ReelsEngine } from '@/presenters/ReelsPresenter';
 
 export class StubReelsEngine implements ReelsEngine {
@@ -18,8 +18,8 @@ export class StubReelsEngine implements ReelsEngine {
   lastResultGrid: Grid = [];
   /** Last anticipation set — useful for asserting server-directed teasers. */
   lastAnticipation: number[] = [];
-  /** Last spotlight call — useful for asserting win-show positions. */
-  lastSpotlight: Array<{ reel: number; row: number }> = [];
+  /** Last showWin call — useful for asserting win-show winlines. */
+  lastWinlines: Winline[] = [];
   /** Counter for how many spins were started — catches double-spend bugs. */
   spinCount = 0;
 
@@ -38,17 +38,11 @@ export class StubReelsEngine implements ReelsEngine {
   forceStop(): void {
     /* no-op */
   }
-  spotlight(cells: Array<{ reel: number; row: number }>): void {
-    this.lastSpotlight = cells.slice();
+  showWin(winlines: Winline[]): void {
+    this.lastWinlines = winlines.slice();
   }
-  clearSpotlight(): void {
-    this.lastSpotlight = [];
-  }
-  showWinAmounts(): void {
-    /* no-op — visuals only */
-  }
-  clearWinAmounts(): void {
-    /* no-op */
+  clearWin(): void {
+    this.lastWinlines = [];
   }
   dispose(): void {
     /* no-op */

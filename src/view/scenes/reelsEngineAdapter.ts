@@ -1,4 +1,4 @@
-// Adapter from pixi-reels `ReelSet` to the app's `ReelsEngine` contract.
+﻿// Adapter from pixi-reels `ReelSet` to the app's `ReelsEngine` contract.
 //
 // The app talks to reels through a narrow interface (`ReelsEngine` in
 // ReelsPresenter). pixi-reels' `ReelSet` surface is richer than our needs;
@@ -7,15 +7,16 @@
 //   - spin() / setResult(grid) — drives a round
 //   - setAnticipation(reels)   — per-reel teaser hook
 //   - setSpeedMode(mode)       — Normal / Turbo / Super Turbo
-//   - spotlight(cells)         — win display
-//   - showWinAmounts(...)      — floating $ labels on winning symbols
+//   - showWin(winlines)        — WinPresenter animates cells + floating $ labels
 //
-// When pixi-reels ships v0.2+ with additional APIs you want to expose,
-// widen ReelsEngine here — not in FSM phases.
+// Uses pixi-reels 0.2+ APIs:
+//   - WinPresenter  — built-in win animation (playWin, dim-losers, events)
+//   - getCellBounds — accurate cell coordinates without hardcoded constants
 
 import gsap from 'gsap';
 import { Container, Text } from 'pixi.js';
-import type { ReelSet, SymbolPosition } from 'pixi-reels';
+import { WinPresenter } from 'pixi-reels';
+import type { ReelSet, Win } from 'pixi-reels';
 import type { Grid, Winline } from '@/domain/types';
 import type { ReelsEngine } from '@/presenters/ReelsPresenter';
 import type { SpeedMode } from '@/state/UIStore';
@@ -28,17 +29,6 @@ const SPEED_NAME: Record<SpeedMode, string> = {
   turbo: 'turbo',
   superTurbo: 'superTurbo',
 };
-
-// Cell geometry — must match MainScene constants.
-const CELL = 140;
-const GAP = 8;
-/** Centre of a symbol cell in reelSet-local coordinates. */
-function cellCenter(reel: number, row: number): { x: number; y: number } {
-  return {
-    x: reel * (CELL + GAP) + CELL / 2,
-    y: row * (CELL + GAP) + CELL / 2,
-  };
-}
 
 function formatAmount(amount: number, currency: string): string {
   try {
@@ -62,23 +52,103 @@ function formatAmount(amount: number, currency: string): string {
 export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   let spinPromise: Promise<unknown> | null = null;
 
+  // WinPresenter handles playWin() calls on each winning cell and dims losers.
+  // We use a custom symbolAnim so we can also trigger particles on the symbol.
+  const winPresenter = new WinPresenter(reelSet, {
+    dimLosers: { alpha: 0.35 },
+    stagger: 60,   // left-to-right sweep across payline cells
+    symbolAnim: (symbol) => {
+      if (symbol instanceof FixedSpriteSymbol) return symbol.playWin();
+      return Promise.resolve();
+    },
+  });
+
   // Layer for floating win amount labels — sits on top of the reelSet.
   const labelsLayer = new Container();
   reelSet.addChild(labelsLayer);
 
-  /** Start idle shine on all currently visible symbols. */
-  function startAllIdleAnims(): void {
-    for (const reel of reelSet.reels) {
-      for (let row = 0; row < reel.visibleRows; row++) {
-        const sym = reel.getSymbolAt(row);
-        if (sym instanceof FixedSpriteSymbol) sym.startIdleAnim();
-      }
+  /** Start idle shine on visible symbols of a single reel. */
+  function startReelIdleAnims(reelIndex: number): void {
+    const reel = reelSet.reels[reelIndex];
+    if (!reel) return;
+    for (let row = 0; row < reel.visibleRows; row++) {
+      const sym = reel.getSymbolAt(row);
+      if (sym instanceof FixedSpriteSymbol) sym.startIdleAnim();
     }
   }
+
+  /** Start idle shine on ALL visible symbols (initial load + slam-stop fallback). */
+  function startAllIdleAnims(): void {
+    for (let i = 0; i < reelSet.reels.length; i++) startReelIdleAnims(i);
+  }
+
+  // Wire per-reel shine: each reel starts shining as it stops, not when the
+  // last reel lands. spin:reelLanded fires even on slam-stop (0.4.0 patch).
+  reelSet.events.on('spin:reelLanded', (reelIndex) => startReelIdleAnims(reelIndex));
 
   // Symbols are already placed on the initial grid — kick off their shine now.
   // Use a microtask so the reelSet container has been added to the stage first.
   Promise.resolve().then(startAllIdleAnims);
+
+  /** Cleanup fn for the win:group / win:end listeners registered in showWin. */
+  let removeWinListeners: (() => void) | null = null;
+
+  // Tracked timelines for label animations — .kill() stops ALL sub-tweens
+  // (label, label.scale, label.position) unlike gsap.killTweensOf() which
+  // only kills tweens where the label itself is the direct target.
+  const labelTimelines: gsap.core.Timeline[] = [];
+
+  function clearLabels(): void {
+    for (const tl of labelTimelines) tl.kill();
+    labelTimelines.length = 0;
+    labelsLayer.removeChildren().forEach((c) => c.destroy());
+  }
+
+  /** Spawn floating $ labels for a single winline's cells. */
+  function spawnLabelsForWinline(line: Winline, currency: string): void {
+    const share = line.amount / line.positions.length;
+    for (const pos of line.positions) {
+      // getCellBounds gives accurate reelSet-local coords without hardcoded constants.
+      const b = reelSet.getCellBounds(pos.reel, pos.row);
+      const cx = b.x + b.width / 2;
+      const cy = b.y + b.height / 2;
+
+      const label = new Text({
+        text: formatAmount(share, currency),
+        style: {
+          fill: '#ffe066',
+          fontFamily: 'system-ui, sans-serif',
+          fontSize: 28,
+          fontWeight: '800',
+          stroke: { color: '#000', width: 5 },
+          dropShadow: {
+            color: '#000',
+            blur: 6,
+            distance: 2,
+            alpha: 0.7,
+          },
+        },
+      });
+      label.anchor.set(0.5);
+      label.position.set(cx, cy);
+      label.alpha = 0;
+      label.scale.set(0.5);
+      labelsLayer.addChild(label);
+
+      const tl = gsap.timeline()
+        .to(label, { alpha: 1, duration: 0.15, ease: 'power2.out' }, 0)
+        .to(label.scale, { x: 1.15, y: 1.15, duration: 0.18, ease: 'back.out(2)' }, 0)
+        .to(label.scale, { x: 1, y: 1, duration: 0.12, ease: 'power2.inOut' }, 0.18)
+        .to(label.position, { y: cy - 48, duration: 0.9, ease: 'power1.out' }, 0.2)
+        .to(label, { alpha: 0, duration: 0.35, ease: 'power2.in' }, 0.75)
+        .call(() => {
+          const idx = labelTimelines.indexOf(tl);
+          if (idx >= 0) labelTimelines.splice(idx, 1);
+          label.destroy();
+        }, undefined, 1.1);
+      labelTimelines.push(tl);
+    }
+  }
 
   return {
     async spin() {
@@ -92,8 +162,10 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
         await spinPromise;
         spinPromise = null;
       }
-      // Reel has fully stopped — start idle shine on visible symbols only.
-      startAllIdleAnims();
+      // spin:reelLanded already fired per-reel idle shine as each reel stopped.
+      // startAllIdleAnims() is not needed here — it would re-trigger all shines
+      // in a visible stutter. If a reel somehow missed the event (edge case),
+      // the symbols' onDeactivate/onActivate lifecycle will reset them cleanly.
     },
     setAnticipation(reels: number[]) {
       if (reels.length > 0) reelSet.setAnticipation(reels);
@@ -102,67 +174,54 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
       reelSet.setSpeed(SPEED_NAME[mode]);
     },
     forceStop() {
-      reelSet.skip();
+      // requestSkip() queues the slam-stop if setResult() hasn't arrived yet,
+      // preventing the reel from snapping onto mid-scroll buffer state.
+      reelSet.requestSkip();
     },
-    spotlight(cells: Array<{ reel: number; row: number }>) {
-      if (cells.length === 0) return;
-      const positions: SymbolPosition[] = cells.map((c) => ({ reelIndex: c.reel, rowIndex: c.row }));
-      void reelSet.spotlight.show(positions);
-    },
-    clearSpotlight() {
-      reelSet.spotlight.hide();
-    },
-    showWinAmounts(winlines: Winline[], currency: string) {
-      // Build a map: cell key → highest amount hitting that cell.
-      const cellAmounts = new Map<string, number>();
-      for (const line of winlines) {
-        const share = line.amount / line.positions.length;
-        for (const pos of line.positions) {
-          const key = `${pos.reel}:${pos.row}`;
-          cellAmounts.set(key, (cellAmounts.get(key) ?? 0) + share);
-        }
+    showWin(winlines: Winline[], currency: string) {
+      if (winlines.length === 0) return;
+
+      // Set win.id = index into winlines so the win:group handler can find
+      // the matching Winline without relying on object-reference Map lookups
+      // (WinPresenter sorts wins before iterating, but preserves each object).
+      const wins: Win[] = winlines.map((w, i) => ({
+        cells: w.positions.map((p) => ({ reelIndex: p.reel, rowIndex: p.row })),
+        value: w.amount,
+        id: i,
+      }));
+
+      // Tear down any leftover listeners from a previous (cleared) show.
+      removeWinListeners?.();
+
+      // Spawn labels only when WinPresenter starts showing that specific win,
+      // so labels appear in sync with the cell animations — not all at once.
+      // Also clear any labels from the previous win first — cells can overlap
+      // between lines, and stacking two labels at the same position causes jitter.
+      function onWinGroup(win: Win): void {
+        clearLabels();
+        const line = win.id !== undefined ? winlines[win.id] : undefined;
+        if (line) spawnLabelsForWinline(line, currency);
       }
-
-      for (const [key, amount] of cellAmounts) {
-        const [reelStr, rowStr] = key.split(':');
-        const { x, y } = cellCenter(Number(reelStr), Number(rowStr));
-
-        const label = new Text({
-          text: formatAmount(amount, currency),
-          style: {
-            fill: '#ffe066',
-            fontFamily: 'system-ui, sans-serif',
-            fontSize: 28,
-            fontWeight: '800',
-            stroke: { color: '#000', width: 5 },
-            dropShadow: {
-              color: '#000',
-              blur: 6,
-              distance: 2,
-              alpha: 0.7,
-            },
-          },
-        });
-        label.anchor.set(0.5);
-        label.position.set(x, y);
-        label.alpha = 0;
-        label.scale.set(0.5);
-        labelsLayer.addChild(label);
-
-        gsap.timeline()
-          .to(label, { alpha: 1, duration: 0.15, ease: 'power2.out' }, 0)
-          .to(label.scale, { x: 1.15, y: 1.15, duration: 0.18, ease: 'back.out(2)' }, 0)
-          .to(label.scale, { x: 1, y: 1, duration: 0.12, ease: 'power2.inOut' }, 0.18)
-          .to(label.position, { y: y - 48, duration: 0.9, ease: 'power1.out' }, 0.2)
-          .to(label, { alpha: 0, duration: 0.35, ease: 'power2.in' }, 0.75)
-          .call(() => label.destroy(), undefined, 1.1);
+      function onWinEnd(reason: string): void {
+        removeWinListeners?.();
       }
+      reelSet.events.on('win:group', onWinGroup);
+      reelSet.events.on('win:end', onWinEnd);
+      removeWinListeners = () => {
+        reelSet.events.off('win:group', onWinGroup);
+        reelSet.events.off('win:end', onWinEnd);
+        removeWinListeners = null;
+      };
+
+      void winPresenter.show(wins);
     },
-    clearWinAmounts() {
-      gsap.killTweensOf(labelsLayer.children);
-      labelsLayer.removeChildren().forEach((c) => c.destroy());
+    clearWin() {
+      removeWinListeners?.();
+      winPresenter.abort();
+      clearLabels();
     },
     dispose() {
+      winPresenter.destroy();
       reelSet.destroy();
     },
   };

@@ -7,6 +7,7 @@
 
 import { Application, Assets, Graphics, type Texture } from "pixi.js";
 import { ReelSetBuilder, SpeedPresets } from "pixi-reels";
+import gsap from "gsap";
 import { GAME } from "@/config/gameConfig";
 import { THEME } from "@/config/theme";
 import { syncGsapToPixi } from "@/infrastructure/timing";
@@ -148,6 +149,7 @@ export class MainScene implements Disposable {
       .speed("turbo", SpeedPresets.TURBO)
       .speed("superTurbo", SpeedPresets.SUPER_TURBO)
       .ticker(this.app.ticker)
+      .gsap(gsap)
       .build();
 
     // Expand the engine's scroll mask and dim overlay to cover the full panel

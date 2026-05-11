@@ -1,4 +1,4 @@
-// ReelsPresenter — the one place that talks to pixi-reels.
+﻿// ReelsPresenter — the one place that talks to pixi-reels.
 // Everything else in the app goes through this surface.
 //
 // Keep this class free of game rules. It translates app state into
@@ -17,10 +17,8 @@ export interface ReelsEngine {
   setAnticipation(reels: number[]): void;
   setSpeedMode(mode: SpeedMode): void;
   forceStop(): void;
-  spotlight(cells: Array<{ reel: number; row: number }>): void;
-  clearSpotlight(): void;
-  showWinAmounts(winlines: Winline[], currency: string): void;
-  clearWinAmounts(): void;
+  showWin(winlines: Winline[], currency: string): void;
+  clearWin(): void;
   dispose(): void;
 }
 
@@ -48,24 +46,11 @@ export class ReelsPresenter implements Disposable {
   }
 
   showWin(winlines: Winline[], currency: string): void {
-    // Deduplicate cells — multiple paylines can share the same cell (e.g. a
-    // WILD on reel 1 row 1 hit by 4 lines). Passing the same position twice
-    // causes pixi-reels to call playWin() on the same symbol container multiple
-    // times, stacking GSAP tweens that outlive the win phase and leave symbols stuck.
-    const seen = new Set<string>();
-    const cells = winlines.flatMap((w) => w.positions).filter(({ reel, row }) => {
-      const key = `${reel}:${row}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-    this.engine.spotlight(cells);
-    this.engine.showWinAmounts(winlines, currency);
+    this.engine.showWin(winlines, currency);
   }
 
   clearWin(): void {
-    this.engine.clearSpotlight();
-    this.engine.clearWinAmounts();
+    this.engine.clearWin();
   }
 
   dispose(): void {

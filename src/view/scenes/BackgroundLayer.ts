@@ -19,7 +19,7 @@
 //
 // Hot-swap: call `setBackground(id)` at any time.
 
-import { Assets, Container, Sprite, type Texture, TilingSprite } from 'pixi.js';
+import { Assets, Container, Sprite, Texture, TilingSprite } from 'pixi.js';
 import { type BackgroundDef, type BackgroundId, getBackground, THEME } from '@/config/theme';
 import type { Disposable } from '@/utils/Disposable';
 import { resizeObject } from '@/view/smart';
@@ -52,7 +52,7 @@ export class BackgroundLayer extends Container implements Disposable {
     this.currentId = opts.initial ?? THEME.background;
     this.currentDef = getBackground(this.currentId);
 
-    const placeholder = Sprite.from(emptyDataURL).texture;
+    const placeholder = Texture.EMPTY;
 
     this.tile = new TilingSprite({ texture: placeholder, width: 1, height: 1 });
     this.addChild(this.tile);
@@ -173,7 +173,7 @@ export class BackgroundLayer extends Container implements Disposable {
   }
 }
 
-// 1x1 transparent PNG. Used as a placeholder so TilingSprite / coverSprite
-// have a valid texture during the brief window before `load()` resolves.
-const emptyDataURL =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';
+// 1x1 transparent PNG previously used as placeholder — replaced by Texture.EMPTY.
+// Kept here in case it's referenced elsewhere; safe to delete if unused.
+// const emptyDataURL =
+//   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=';

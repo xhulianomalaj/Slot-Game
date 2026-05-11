@@ -33,6 +33,7 @@ export class FixedSpriteSymbol extends SpriteSymbol {
   private _glintLayer: Container | null = null;
   private _glintTl: gsap.core.Timeline | null = null;
   private _particleContainer: Container | null = null;
+  private _particleTimelines: gsap.core.Timeline[] = [];
 
   // ── Lifecycle ────────────────────────────────────────────────────────────
 
@@ -47,7 +48,12 @@ export class FixedSpriteSymbol extends SpriteSymbol {
 
   protected override onDeactivate(): void {
     this._stopIdleAnim();
+    this._killWinTimeline();
+    this._destroyGlow();
     this._killParticles();
+    // Reset view transform so recycled symbols start from a clean state.
+    this.view.rotation = 0;
+    this.view.scale.set(1, 1);
     super.onDeactivate();
   }
 
@@ -212,14 +218,19 @@ export class FixedSpriteSymbol extends SpriteSymbol {
       const tx = cx + Math.cos(angle) * speed;
       const ty = cy + Math.sin(angle) * speed + 35;
 
-      gsap
+      const ptl = gsap
         .timeline()
         .to(dot, { x: tx, y: ty, duration: dur, ease: 'power2.out' }, 0)
         .to(dot, { alpha: 0, duration: dur * 0.4, ease: 'power2.in' }, dur * 0.6);
+      this._particleTimelines.push(ptl);
     }
   }
 
   private _killParticles(): void {
+    // Kill tracked timelines BEFORE destroying dots — GSAP must not
+    // write to destroyed Pixi objects whose transform becomes null.
+    for (const tl of this._particleTimelines) tl.kill();
+    this._particleTimelines = [];
     if (this._particleContainer) {
       this._particleContainer.destroy({ children: true });
       this._particleContainer = null;
