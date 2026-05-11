@@ -20,6 +20,7 @@ import type { Grid, Winline } from '@/domain/types';
 import type { ReelsEngine } from '@/presenters/ReelsPresenter';
 import type { SpeedMode } from '@/state/UIStore';
 import type { Disposable } from '@/utils/Disposable';
+import { FixedSpriteSymbol } from '@/view/symbols/FixedSpriteSymbol';
 
 /** Maps UIStore SpeedMode to the pixi-reels SpeedPresets profile names. */
 const SPEED_NAME: Record<SpeedMode, string> = {
@@ -65,6 +66,20 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   const labelsLayer = new Container();
   reelSet.addChild(labelsLayer);
 
+  /** Start idle shine on all currently visible symbols. */
+  function startAllIdleAnims(): void {
+    for (const reel of reelSet.reels) {
+      for (let row = 0; row < reel.visibleRows; row++) {
+        const sym = reel.getSymbolAt(row);
+        if (sym instanceof FixedSpriteSymbol) sym.startIdleAnim();
+      }
+    }
+  }
+
+  // Symbols are already placed on the initial grid — kick off their shine now.
+  // Use a microtask so the reelSet container has been added to the stage first.
+  Promise.resolve().then(startAllIdleAnims);
+
   return {
     async spin() {
       spinPromise = reelSet.spin();
@@ -77,6 +92,8 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
         await spinPromise;
         spinPromise = null;
       }
+      // Reel has fully stopped — start idle shine on visible symbols only.
+      startAllIdleAnims();
     },
     setAnticipation(reels: number[]) {
       if (reels.length > 0) reelSet.setAnticipation(reels);
