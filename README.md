@@ -4,7 +4,7 @@
 
 A fully-featured browser-based slot game built from the ground up as a personal portfolio project. The game is currently **under active development** and will be publicly hosted in the future so anyone can play it directly in their browser — no download required.
 
-> **Status:** In development — core gameplay, HUD, animations, and test infrastructure are complete. The mock server now simulates realistic reel strips, 20 paylines, wild substitution, and scatter evaluation. Ongoing work includes sound, final art, and live hosting.
+> **Status:** Ongoing — animation updates, sound effects, and bug fixes.
 
 ---
 

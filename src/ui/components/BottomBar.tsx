@@ -80,7 +80,7 @@ export const BottomBar = observer(() => {
         <IconButton
           ariaLabel={ui.isAutospinning ? t('hud.autospin.cancel') : t('hud.autospin.start')}
           active={ui.isAutospinning}
-          disabled={ui.spinning && !ui.isAutospinning}
+          disabled={ui.spinning}
           testId="btn-autospin"
           extraProps={{ 'data-pixi-label': 'autoplay' }}
           onClick={() => (ui.isAutospinning ? ui.stopAutospin() : ui.startAutospin(10))}

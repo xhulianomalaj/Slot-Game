@@ -7,6 +7,10 @@ export class SpinPhase implements Phase {
   readonly name = 'spin';
 
   async enter(ctx: PhaseContext): Promise<void> {
+    const { ui } = ctx.stores;
+    if (ui.isAutospinning) {
+      ui.beginAutospinRound();
+    }
     ctx.stores.balance.debitBet(); // optimistic; server balance in response is authoritative
     ctx.stores.ui.recordStake(ctx.stores.balance.bet);
     ctx.stores.ui.setSpinning(true);

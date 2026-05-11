@@ -7,6 +7,11 @@ export class FSM {
   private current: Phase | null = null;
   private phases = new Map<string, Phase>();
   private ctx: Omit<PhaseContext, 'fsm'>;
+  // True while any spin chain is in-flight (spin → stopSpin → winShow → …).
+  // Cleared only when we enter 'idle'. External spin requests are dropped
+  // unless the current phase is 'winShow' (internal autoplay continuation)
+  // or the FSM hasn't started yet.
+  private _spinInFlight = false;
 
   constructor(ctx: Omit<PhaseContext, 'fsm'>) {
     this.ctx = ctx;
@@ -28,6 +33,22 @@ export class FSM {
   }
 
   async transition(to: string): Promise<void> {
+    if (to === 'spin') {
+      const currentPhaseName = this.current?.name ?? null;
+      // Allow the transition only if:
+      //  a) no spin is running yet, OR
+      //  b) we're inside WinShowPhase continuing the autoplay chain
+      const isInternalContinuation = currentPhaseName === 'winShow' || currentPhaseName === null;
+      if (this._spinInFlight && !isInternalContinuation) {
+        console.log('[FSM] dropping external spin — already in flight, currentPhase:', currentPhaseName);
+        return;
+      }
+      this._spinInFlight = true;
+    }
+    if (to === 'idle') {
+      this._spinInFlight = false;
+    }
+
     const next = this.phases.get(to);
     if (!next) throw new Error(`[FSM] unknown phase: ${to}`);
     if (this.current) {

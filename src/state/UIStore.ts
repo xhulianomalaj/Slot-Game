@@ -36,6 +36,12 @@ export class UIStore {
   spinning = false;
   speed: SpeedMode = 'normal';
   autospinRemaining = 0;
+  autospinGeneration = 0;
+  // Set when the player clicks STOP during autoplay. Cleared when spinning ends.
+  // Disables the spin button and autoplay button while the current reel
+  // animation finishes naturally.
+  autospinStopping = false;
+  private _activeSpinGen = -1;
 
   // Audio
   soundEnabled = true;
@@ -120,6 +126,8 @@ export class UIStore {
       language: observable,
       loadError: observable,
       tappedToStart: observable,
+      autospinGeneration: observable,
+      autospinStopping: observable,
       isAutospinning: computed,
       net: computed,
       setSpinning: action,
@@ -148,6 +156,7 @@ export class UIStore {
       startAutospin: action,
       stopAutospin: action,
       tickAutospin: action,
+      beginAutospinRound: action,
       recordStake: action,
       recordWin: action,
       setLoadProgress: action,
@@ -170,6 +179,7 @@ export class UIStore {
     this.spinning = s;
     this.spinEnabled = !s;
     this.stopEnabled = s;
+    if (!s) this.autospinStopping = false;
   }
   setSpeed(speed: SpeedMode): void {
     this.speed = speed;
@@ -246,13 +256,21 @@ export class UIStore {
   }
 
   startAutospin(count: number): void {
+    this.autospinGeneration++;
     this.autospinRemaining = count;
+    this.autospinStopping = false;
   }
   stopAutospin(): void {
+    if (this.isAutospinning) this.autospinStopping = true;
     this.autospinRemaining = 0;
   }
+  beginAutospinRound(): void {
+    this._activeSpinGen = this.autospinGeneration;
+  }
   tickAutospin(): void {
-    if (this.autospinRemaining > 0) this.autospinRemaining -= 1;
+    if (this._activeSpinGen === this.autospinGeneration && this.autospinRemaining > 0) {
+      this.autospinRemaining--;
+    }
   }
 
   recordStake(v: number): void {

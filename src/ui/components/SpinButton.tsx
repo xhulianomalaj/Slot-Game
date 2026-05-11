@@ -8,13 +8,24 @@ export const SpinButton = observer(() => {
 
   const onClick = () => {
     if (ui.spinning) {
-      fsm.skip();
+      if (ui.isAutospinning) {
+        // Stop autoplay after this spin; animation finishes naturally.
+        ui.stopAutospin();
+      } else {
+        // Manual spin: skip/fast-forward the animation.
+        fsm.skip();
+      }
     } else {
       void fsm.transition('spin');
     }
   };
 
-  const disabled = !ui.spinning && !ui.spinEnabled && !ui.isAutospinning;
+  // Disabled when: no spin is possible at all, OR stop was already requested
+  // and we're waiting for the current animation to finish.
+  const disabled =
+    (!ui.spinning && !ui.spinEnabled && !ui.isAutospinning) ||
+    ui.autospinStopping;
+
   const isStopState = ui.spinning;
 
   return (
