@@ -44,17 +44,17 @@ function formatAmount(amount: number, currency: string): string {
     const parts = new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency,
+      currencyDisplay: 'narrowSymbol',
       minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
       maximumFractionDigits: 2,
     }).formatToParts(amount);
-    // Drop any 'literal' parts that precede or follow the currency symbol
-    // (e.g. "US" in "US$3") — keep only symbol + integer + decimal + fraction.
     return parts
       .filter((p) => p.type !== 'literal')
       .map((p) => p.value)
       .join('');
   } catch {
-    return `$${amount.toFixed(2)}`;
+    // Fallback for browsers without narrowSymbol support.
+    return `$${amount % 1 === 0 ? amount.toFixed(0) : amount.toFixed(2)}`;
   }
 }
 
