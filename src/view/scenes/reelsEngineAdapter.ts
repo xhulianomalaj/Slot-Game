@@ -41,12 +41,18 @@ function cellCenter(reel: number, row: number): { x: number; y: number } {
 
 function formatAmount(amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat(undefined, {
+    const parts = new Intl.NumberFormat(undefined, {
       style: 'currency',
       currency,
       minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).formatToParts(amount);
+    // Drop any 'literal' parts that precede or follow the currency symbol
+    // (e.g. "US" in "US$3") — keep only symbol + integer + decimal + fraction.
+    return parts
+      .filter((p) => p.type !== 'literal')
+      .map((p) => p.value)
+      .join('');
   } catch {
     return `$${amount.toFixed(2)}`;
   }

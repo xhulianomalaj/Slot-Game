@@ -40,7 +40,6 @@ export class FSM {
       //  b) we're inside WinShowPhase continuing the autoplay chain
       const isInternalContinuation = currentPhaseName === 'winShow' || currentPhaseName === null;
       if (this._spinInFlight && !isInternalContinuation) {
-        console.log('[FSM] dropping external spin — already in flight, currentPhase:', currentPhaseName);
         return;
       }
       this._spinInFlight = true;
