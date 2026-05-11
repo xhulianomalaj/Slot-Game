@@ -25,7 +25,7 @@ export class WinShowPhase implements Phase {
     }
 
     if (winlines.length > 0 && totalWin > 0) {
-      ctx.reels.showWin(winlines);
+      ctx.reels.showWin(winlines, ctx.stores.ui.currency);
       ctx.stores.balance.setLastWin(totalWin);
       ctx.stores.ui.recordWin(totalWin);
     }

@@ -19,6 +19,8 @@ export interface ReelsEngine {
   forceStop(): void;
   spotlight(cells: Array<{ reel: number; row: number }>): void;
   clearSpotlight(): void;
+  showWinAmounts(winlines: Winline[], currency: string): void;
+  clearWinAmounts(): void;
   dispose(): void;
 }
 
@@ -45,7 +47,7 @@ export class ReelsPresenter implements Disposable {
     this.engine.forceStop();
   }
 
-  showWin(winlines: Winline[]): void {
+  showWin(winlines: Winline[], currency: string): void {
     // Deduplicate cells — multiple paylines can share the same cell (e.g. a
     // WILD on reel 1 row 1 hit by 4 lines). Passing the same position twice
     // causes pixi-reels to call playWin() on the same symbol container multiple
@@ -58,10 +60,12 @@ export class ReelsPresenter implements Disposable {
       return true;
     });
     this.engine.spotlight(cells);
+    this.engine.showWinAmounts(winlines, currency);
   }
 
   clearWin(): void {
     this.engine.clearSpotlight();
+    this.engine.clearWinAmounts();
   }
 
   dispose(): void {

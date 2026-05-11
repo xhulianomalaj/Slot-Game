@@ -44,6 +44,12 @@ export class StubReelsEngine implements ReelsEngine {
   clearSpotlight(): void {
     this.lastSpotlight = [];
   }
+  showWinAmounts(): void {
+    /* no-op — visuals only */
+  }
+  clearWinAmounts(): void {
+    /* no-op */
+  }
   dispose(): void {
     /* no-op */
   }
