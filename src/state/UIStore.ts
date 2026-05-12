@@ -235,7 +235,9 @@ export class UIStore {
 
   openMenu(tab?: MenuTab): void {
     this.menuOpen = true;
-    if (tab) this.menuTab = tab;
+    // Always open on settings when no specific tab is requested, so the
+    // burger / info icon consistently lands on the same screen.
+    this.menuTab = tab ?? 'settings';
   }
   closeMenu(): void {
     this.menuOpen = false;
@@ -246,7 +248,8 @@ export class UIStore {
 
   openRules(tab?: string): void {
     this.rulesOpen = true;
-    if (tab) this.rulesTab = tab;
+    // Always reset to the first tab when no specific tab is requested.
+    this.rulesTab = tab ?? 'how-to-play';
   }
   closeRules(): void {
     this.rulesOpen = false;

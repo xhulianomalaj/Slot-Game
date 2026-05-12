@@ -169,14 +169,15 @@
       "intro": "Payouts shown as multipliers of your bet. Wins pay left-to-right on active paylines.",
       "columns": { "symbol": "Symbol", "x2": "2×", "x3": "3×", "x4": "4×", "x5": "5×" },
       "rows": [
-        { "symbol": "seven", "name": "Lucky Seven", "payouts": ["—", "50×", "200×", "1000×"] },
-        { "symbol": "wild", "name": "Wild", "payouts": ["—", "50×", "200×", "1000×"] },
-        { "symbol": "bar", "name": "Bar", "payouts": ["—", "30×", "100×", "400×"] },
-        { "symbol": "bell", "name": "Bell", "payouts": ["—", "20×", "60×", "200×"] },
-        { "symbol": "plum", "name": "Plum", "payouts": ["—", "10×", "30×", "80×"] },
-        { "symbol": "orange", "name": "Orange", "payouts": ["—", "10×", "30×", "80×"] },
-        { "symbol": "lemon", "name": "Lemon", "payouts": ["—", "5×", "20×", "50×"] },
-        { "symbol": "cherry", "name": "Cherry", "payouts": ["—", "5×", "20×", "50×"] }
+        { "symbol": "wild",    "name": "Wild",        "payouts": ["—", "100×", "500×",  "2500×"] },
+        { "symbol": "seven",   "name": "Lucky Seven", "payouts": ["—", "50×",  "200×",  "1000×"] },
+        { "symbol": "bar",     "name": "Bar",         "payouts": ["—", "25×",  "100×",  "500×"]  },
+        { "symbol": "bell",    "name": "Bell",        "payouts": ["—", "15×",  "60×",   "250×"]  },
+        { "symbol": "cherry",  "name": "Cherry",      "payouts": ["—", "10×",  "40×",   "150×"]  },
+        { "symbol": "plum",    "name": "Plum",        "payouts": ["—", "8×",   "30×",   "100×"]  },
+        { "symbol": "orange",  "name": "Orange",      "payouts": ["—", "5×",   "20×",   "60×"]   },
+        { "symbol": "lemon",   "name": "Lemon",       "payouts": ["—", "5×",   "15×",   "50×"]   },
+        { "symbol": "scatter", "name": "Scatter",     "payouts": ["—", "5×",   "20×",   "100×"]  }
       ],
       "notes": [
         "All payouts are authoritative on the server; the table shown here is for reference only.",
@@ -197,7 +198,7 @@
         { "label": "Zigzag down", "pattern": [1, 2, 2, 2, 1] },
         { "label": "Arrow right", "pattern": [0, 0, 1, 2, 2] },
         { "label": "Arrow left", "pattern": [2, 2, 1, 0, 0] },
-        { "label": "Wave", "pattern": [1, 0, 1, 2, 1] }
+        { "label": "Wave", "pattern": [0, 2, 1, 2, 0] }
       ]
     },
     "features": {
@@ -206,12 +207,12 @@
         {
           "icon": "wild",
           "title": "Wild",
-          "body": "The Wild substitutes for any regular symbol to complete a winning payline. It pays at the Seven rate when it lands in 3-of-a-kind or more."
+          "body": "The Wild substitutes for any regular symbol to complete a winning payline. It pays its own higher multipliers (100× / 500× / 2500×) when it forms a winning combination on its own."
         },
         {
           "icon": "scatter",
           "title": "Scatter",
-          "body": "Scatters pay anywhere on the reels and are not bound to paylines. Collect enough on a single spin to trigger the bonus round."
+          "body": "Scatters pay anywhere on the reels and are not bound to paylines. 3 or more scatters on a single spin pay a cash prize based on total bet."
         },
         {
           "icon": "bonus",
@@ -225,9 +226,9 @@
           { "key": "RTP", "value": "96.00%" },
           { "key": "Volatility", "value": "Medium" },
           { "key": "Reels", "value": "5 × 3" },
-          { "key": "Paylines", "value": "10" },
+          { "key": "Paylines", "value": "20" },
           { "key": "Min / max bet", "value": "$0.20 – $100.00" },
-          { "key": "Max win", "value": "1000× bet" }
+          { "key": "Max win", "value": "2500× bet" }
         ]
       }
     }
