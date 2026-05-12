@@ -7,7 +7,7 @@ export type MenuTab = 'paytable' | 'info' | 'settings' | 'autoplay' | 'bet' | 'h
 /** Reality-check interval in minutes; 0 = off. */
 export type RealityCheckMinutes = 0 | 15 | 30 | 60;
 
-const BETS = [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100] as const;
+const BETS = [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100, 200, 500, 1000] as const;
 
 export interface AutoplayConfig {
   rounds: number; // 10, 25, 50, 100, 250, 500, 0=∞

@@ -200,7 +200,7 @@ export class MockNetworkManager implements NetworkManager {
       sessionId:     `mock-${Math.random().toString(36).slice(2, 10)}`,
       balance:       this.balance,
       currency:      'USD',
-      availableBets: [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100],
+      availableBets: [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100, 200, 500, 1000],
       defaultBet:    1,
       columns:       this.opts.columns,
       rows:          this.opts.rows,
@@ -245,6 +245,9 @@ export class MockNetworkManager implements NetworkManager {
     const totalWin = r2(winlines.reduce((sum, wl) => sum + wl.amount, 0));
     this.balance   = r2(this.balance + totalWin);
     this.totalWon  = r2(this.totalWon + totalWin);
+
+    // Auto-refill: keep mock play going when balance is nearly empty.
+    if (this.balance < 0.20) this.balance = 1000;
 
     await wait(this.spinBase + jitter(120));
 

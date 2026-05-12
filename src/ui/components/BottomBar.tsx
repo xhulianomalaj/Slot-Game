@@ -1,4 +1,5 @@
 import { useT } from '@/i18n/useT';
+import { AVAILABLE_BETS } from '@/state/UIStore';
 import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
 import { BuyBonus } from './BuyBonus';
@@ -61,7 +62,7 @@ export const BottomBar = observer(() => {
             ariaLabel="Increase bet"
             testId="bet-plus"
             extraProps={{ 'data-pixi-label': 'bet:plus' }}
-            disabled={!canStep || balance.bet >= 100}
+            disabled={!canStep || balance.bet >= AVAILABLE_BETS[AVAILABLE_BETS.length - 1]!}
             onClick={() => { balance.resetLastWin(); balance.stepBet(1); }}
           >
             <IconPlus />

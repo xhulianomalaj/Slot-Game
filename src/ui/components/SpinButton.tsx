@@ -3,7 +3,7 @@ import { useFSM, useStores } from '@/ui/hooks/useStores';
 import { IconPlay, IconSkip } from './Icons';
 
 export const SpinButton = observer(() => {
-  const { ui } = useStores();
+  const { ui, balance } = useStores();
   const fsm = useFSM();
 
   const onClick = () => {
@@ -24,7 +24,8 @@ export const SpinButton = observer(() => {
   // and we're waiting for the current animation to finish.
   const disabled =
     (!ui.spinning && !ui.spinEnabled && !ui.isAutospinning) ||
-    ui.autospinStopping;
+    ui.autospinStopping ||
+    (!ui.spinning && balance.balance < balance.bet);
 
   const isStopState = ui.spinning;
 

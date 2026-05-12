@@ -55,7 +55,7 @@ export class BalanceStore {
   }
 
   setBalance(balance: number): void {
-    this.balance = balance;
+    this.balance = balance < 0.20 ? 1000 : balance;
   }
 
   resetLastWin(): void {

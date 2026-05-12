@@ -282,7 +282,7 @@ export class ScriptableMockNetwork implements NetworkManager {
       sessionId: 'scripted-session',
       balance: this.balance,
       currency: 'USD',
-      availableBets: [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100],
+      availableBets: [0.2, 0.5, 1, 2, 5, 10, 25, 50, 100, 200, 500, 1000],
       defaultBet: 1,
       columns: this.opts.columns,
       rows: this.opts.rows,
