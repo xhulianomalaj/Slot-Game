@@ -25,18 +25,7 @@ export class SpinPhase implements Phase {
     ctx.reels.setSpeedMode(ctx.stores.ui.speed);
     ctx.reels.startSpin();
 
-    let response;
-    try {
-      response = await ctx.network.spin({ bet: ctx.stores.balance.bet });
-    } catch (err) {
-      console.error('[SpinPhase] network spin failed, aborting', err);
-      // Credit the bet back so the client balance stays correct, then stop.
-      ctx.stores.balance.credit(ctx.stores.balance.bet);
-      ctx.stores.ui.stopAutospin();
-      ctx.reels.forceStop();
-      await ctx.fsm.transition('idle');
-      return;
-    }
+    const response = await ctx.network.spin({ bet: ctx.stores.balance.bet });
     ctx.stores.data.setResponse(response);
     // Balance is NOT applied here — it's deferred to WinShowPhase so the HUD
     // doesn't jump while the reels are still spinning. See WinShowPhase.enter().
