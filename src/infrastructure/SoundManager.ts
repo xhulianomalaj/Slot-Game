@@ -31,12 +31,38 @@ export class SoundManager {
   private activeSources = new Map<SoundId, AudioBufferSourceNode>();
   private ready = false;
   private disposeReactions: (() => void) | null = null;
+  /** True when we explicitly suspended the context on tab hide. */
+  private suspendedByVisibility = false;
 
   constructor(private readonly ui: UIStore) {}
 
-  /** Called on the first pointer-down anywhere in the window to un-suspend the AudioContext. */
+  /** Called on the first touch/pointer anywhere in the window to un-suspend the AudioContext.
+   *  Registered for both touchstart and pointerdown because mobile Chrome requires touchstart
+   *  to count as a qualifying user gesture for AudioContext.resume(). */
   private readonly onFirstInteraction = (): void => {
+    // Remove both event types — we only need this once.
+    window.removeEventListener('touchstart', this.onFirstInteraction);
+    window.removeEventListener('pointerdown', this.onFirstInteraction);
     this.ctx?.resume().catch(() => undefined);
+  };
+
+  /** Suspend audio when the tab is hidden; resume when it becomes visible again. */
+  private readonly onVisibilityChange = (): void => {
+    if (!this.ctx || !this.masterGain) return;
+    if (document.hidden) {
+      this.suspendedByVisibility = true;
+      // Set gain to 0 immediately — ctx.suspend() is async and on some Android
+      // Chrome builds it doesn't silence fast enough before the OS hands focus
+      // to the home screen, so the music audibly leaks through.
+      this.masterGain.gain.value = 0;
+      this.ctx.suspend().catch(() => undefined);
+    } else if (this.suspendedByVisibility) {
+      // Only resume if we were the ones who suspended — avoids accidentally
+      // un-blocking a context that was never unlocked by a user gesture.
+      this.suspendedByVisibility = false;
+      this.ctx.resume().catch(() => undefined);
+      this.masterGain.gain.value = this.ui.soundEnabled ? 1 : 0;
+    }
   };
 
   async init(): Promise<void> {
@@ -66,8 +92,14 @@ export class SoundManager {
     // The browser freezes AudioContext created with no user gesture; resume() unlocks it so
     // the background music (already started above) actually begins playing.
     if (this.ctx.state === 'suspended') {
-      window.addEventListener('pointerdown', this.onFirstInteraction, { once: true });
+      // touchstart is the event mobile Chrome treats as a qualifying user gesture;
+      // pointerdown covers desktop and some mobile scenarios.
+      window.addEventListener('touchstart', this.onFirstInteraction);
+      window.addEventListener('pointerdown', this.onFirstInteraction);
     }
+
+    // Pause / resume audio automatically when the player switches tabs.
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
 
     // Keep gain nodes in sync with store changes.
     const r1 = reaction(
@@ -131,7 +163,9 @@ export class SoundManager {
   }
 
   dispose(): void {
+    window.removeEventListener('touchstart', this.onFirstInteraction);
     window.removeEventListener('pointerdown', this.onFirstInteraction);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     this.disposeReactions?.();
     this.disposeReactions = null;
     for (const id of this.activeSources.keys()) this.stop(id);

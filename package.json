@@ -55,5 +55,10 @@
     "@esotericsoftware/spine-pixi-v8": {
       "optional": true
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": ">=10.2.3"
+    }
   }
 }

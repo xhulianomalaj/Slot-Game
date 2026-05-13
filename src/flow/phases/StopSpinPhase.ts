@@ -2,7 +2,6 @@ import type { Phase, PhaseContext } from '../Phase';
 
 export class StopSpinPhase implements Phase {
   readonly name = 'stopSpin';
-  private spinSoundStopTimer: { dispose(): void } | null = null;
 
   async enter(ctx: PhaseContext): Promise<void> {
     const { grid, teasingReels } = ctx.stores.data;
@@ -25,32 +24,23 @@ export class StopSpinPhase implements Phase {
       ctx.stores.ui.speed === 'normal' &&
       !teasingReels?.length;
 
-    if (useEarlyStop) {
-      ctx.reels.onPenultimateReelLanded = () => ctx.sound.play('stop');
-    }
-
-    const stopPromise = ctx.reels.stopWithResult(grid);
-    if (ctx.stores.ui.speed === 'normal') {
-      this.spinSoundStopTimer = ctx.ticker.schedule(1600, () => {
-        this.spinSoundStopTimer = null;
-        ctx.sound.stop('spinning');
-      });
-    } else if (ctx.stores.ui.speed === 'turbo') {
-      this.spinSoundStopTimer = ctx.ticker.schedule(400, () => {
-        this.spinSoundStopTimer = null;
-        ctx.sound.stop('spinning');
-      });
-    } else {
+    // Stop spinning sound at the penultimate reel landing (event-driven, tab-safe).
+    // Using the reel-landed event instead of a gsap timer means the cut happens at
+    // the right visual moment even after a tab switch (performance.now() keeps
+    // advancing while hidden, so timers catch up on resume; reel events do not).
+    // For normal-speed no-win, also cue the stop sound here so it plays while the
+    // last reel is still settling.
+    ctx.reels.onPenultimateReelLanded = () => {
       ctx.sound.stop('spinning');
-    }
-    await stopPromise;
+      if (useEarlyStop) ctx.sound.play('stop');
+    };
 
-    // Phase is done — cancel any pending stop timer and ensure the sound is off
-    // so it cannot bleed into the next spin.
-    this.cancelSpinSound(ctx);
+    await ctx.reels.stopWithResult(grid);
 
-    // For non-early-stop cases (turbo, superTurbo, anticipation, win) play the
-    // stop sound now — all reels have fully landed at this point.
+    // Fallback: silence spinning in case penultimate never fired (e.g. single reel).
+    ctx.sound.stop('spinning');
+
+    // For non-early-stop no-win cases play the stop sound now — all reels landed.
     if (isNoWin && !useEarlyStop) {
       ctx.sound.play('stop');
     }
@@ -60,13 +50,6 @@ export class StopSpinPhase implements Phase {
 
   skip(ctx: PhaseContext): void {
     ctx.reels.forceStop();
-    this.cancelSpinSound(ctx);
-  }
-
-  /** Cancel the spinning-stop timer and immediately silence the spinning sound. */
-  private cancelSpinSound(ctx: PhaseContext): void {
-    this.spinSoundStopTimer?.dispose();
-    this.spinSoundStopTimer = null;
     ctx.sound.stop('spinning');
   }
 }
