@@ -34,6 +34,11 @@ export class SoundManager {
 
   constructor(private readonly ui: UIStore) {}
 
+  /** Called on the first pointer-down anywhere in the window to un-suspend the AudioContext. */
+  private readonly onFirstInteraction = (): void => {
+    this.ctx?.resume().catch(() => undefined);
+  };
+
   async init(): Promise<void> {
     this.ctx = new AudioContext();
 
@@ -56,6 +61,13 @@ export class SoundManager {
       ),
     );
     this.ready = true;
+
+    // Un-suspend the AudioContext on the first user interaction anywhere in the window.
+    // The browser freezes AudioContext created with no user gesture; resume() unlocks it so
+    // the background music (already started above) actually begins playing.
+    if (this.ctx.state === 'suspended') {
+      window.addEventListener('pointerdown', this.onFirstInteraction, { once: true });
+    }
 
     // Keep gain nodes in sync with store changes.
     const r1 = reaction(
@@ -119,6 +131,7 @@ export class SoundManager {
   }
 
   dispose(): void {
+    window.removeEventListener('pointerdown', this.onFirstInteraction);
     this.disposeReactions?.();
     this.disposeReactions = null;
     for (const id of this.activeSources.keys()) this.stop(id);

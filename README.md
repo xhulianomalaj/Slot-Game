@@ -20,6 +20,7 @@ The project is intentionally built to the standard of a commercial iGaming clien
 - **Preact + MobX** reactive HUD overlay — components re-render only when relevant store values change
 - **Finite State Machine** game loop — each phase (spin, win-show) is an isolated, testable unit
 - **Adaptive layout engine** — `SmartContainer` auto-positions every scene element across portrait/landscape and all viewport sizes using per-orientation fit/align configs
+- **Web Audio engine** — `SoundManager` routes SFX and music through independent gain nodes (master mute, per-category volume). All timing is scheduled through the FSM ticker so sounds stay frame-accurate. Autoplay policy is handled with a lazy `AudioContext` that resumes on first user interaction
 - **Three-tier test suite** — unit tests (Vitest), end-to-end behavior scenarios (Playwright), and a 16-viewport screenshot matrix
 - **In-page test bridge** — exposes the full game state to Playwright specs; lets tests script server responses, simulate connection loss, click canvas buttons by semantic label, and record zero-code spec files live
 - **Realistic mock network** — weighted reel strips (Fisher-Yates shuffled per session), 20-payline evaluation with left-to-right wild substitution, scatter pays anywhere, and variable latency; no real backend required
@@ -88,7 +89,7 @@ src/
   presenters/           State → view adapters (reels, background).
   view/                 Pixi scenes, symbol classes, smart positioning.
   ui/                   Preact HUD — components, hooks, styles.
-  infrastructure/       Network, ticker, asset loader, analytics.
+  infrastructure/       Network, ticker, asset loader, analytics, SoundManager.
   config/               Grid config, symbol IDs, theme catalogue.
   testing/              Test bridge, inspector overlay, mock network.
 tests/
@@ -116,7 +117,7 @@ raw-assets/             Source art. Compile with `pnpm run assets:pack`.
 
 ## Roadmap
 
-- [ ] Sound engine integration
+- [x] Sound engine integration
 - [ ] Final art and symbol set
 - [ ] Live hosting (public playable build)
 - [ ] Mobile touch gesture support

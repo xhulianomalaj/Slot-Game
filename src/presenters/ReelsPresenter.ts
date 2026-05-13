@@ -13,7 +13,8 @@ import type { Disposable } from '@/utils/Disposable';
 // below is what the rest of the app depends on — keep it stable.
 export interface ReelsEngine {
   spin(): Promise<void>;
-  setResult(grid: Grid): Promise<void>;
+  /** onPenultimate fires when (numReels - 1) reels have landed — one before last. */
+  setResult(grid: Grid, onPenultimate?: () => void): Promise<void>;
   setAnticipation(reels: number[]): void;
   setSpeedMode(mode: SpeedMode): void;
   forceStop(): void;
@@ -23,6 +24,9 @@ export interface ReelsEngine {
 }
 
 export class ReelsPresenter implements Disposable {
+  /** Set before calling stopWithResult() to receive a callback one reel before the last lands. */
+  onPenultimateReelLanded: (() => void) | null = null;
+
   constructor(private readonly engine: ReelsEngine) {}
 
   async startSpin(): Promise<void> {
@@ -30,7 +34,9 @@ export class ReelsPresenter implements Disposable {
   }
 
   async stopWithResult(grid: Grid): Promise<void> {
-    await this.engine.setResult(grid);
+    const cb = this.onPenultimateReelLanded;
+    this.onPenultimateReelLanded = null;
+    await this.engine.setResult(grid, cb ?? undefined);
   }
 
   setAnticipation(reels: number[]): void {

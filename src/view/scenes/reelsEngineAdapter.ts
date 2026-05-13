@@ -155,17 +155,35 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
       spinPromise = reelSet.spin();
       // Don't await — SpinPhase runs this concurrently with the network call.
     },
-    async setResult(grid: Grid) {
+    async setResult(grid: Grid, onPenultimate?: () => void) {
+      // Resolve as soon as the last reel visually snaps to its result position
+      // (spin:reelLanded fires synchronously in the animation frame where each
+      // reel stops). Resolving here — rather than on spinPromise — removes the
+      // one-frame delay between the visual landing and any sound/logic that
+      // follows (e.g. the no-win stop sound).
+      const numReels = reelSet.reels.length;
+      let landedCount = 0;
+      let resolveLanded!: () => void;
+      const landedPromise = new Promise<void>((r) => { resolveLanded = r; });
+      const onLanded = () => {
+        ++landedCount;
+        // Fire the penultimate callback one reel before the last so callers can
+        // trigger audio that perceptually aligns with the final reel settling.
+        if (landedCount === numReels - 1 && onPenultimate) onPenultimate();
+        if (landedCount >= numReels) resolveLanded();
+      };
+      reelSet.events.on('spin:reelLanded', onLanded);
+
       reelSet.setResult(grid);
-      // Wait for pixi-reels to finish the stop sequence.
-      if (spinPromise) {
-        await spinPromise;
-        spinPromise = null;
-      }
-      // spin:reelLanded already fired per-reel idle shine as each reel stopped.
-      // startAllIdleAnims() is not needed here — it would re-trigger all shines
-      // in a visible stutter. If a reel somehow missed the event (edge case),
-      // the symbols' onDeactivate/onActivate lifecycle will reset them cleanly.
+      await landedPromise;
+      reelSet.events.off('spin:reelLanded', onLanded);
+
+      // Let spinPromise drain in the background so pixi-reels finalises its
+      // internal state before the next round. By the time WinShowPhase ends
+      // (~450 ms minimum) this will have long resolved.
+      const p = spinPromise;
+      spinPromise = null;
+      p?.catch(() => undefined);
     },
     setAnticipation(reels: number[]) {
       if (reels.length > 0) reelSet.setAnticipation(reels);

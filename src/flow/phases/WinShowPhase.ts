@@ -43,8 +43,6 @@ export class WinShowPhase implements Phase {
           ctx.ticker.schedule(i * MS_PER_WIN, () => ctx.sound.play('win')),
         );
       }
-    } else {
-      ctx.sound.play('stop');
     }
 
     this.cancel = ctx.ticker.schedule(hold, () => {

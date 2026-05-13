@@ -5,6 +5,7 @@ import type { Phase, PhaseContext } from '../Phase';
 
 export class SpinPhase implements Phase {
   readonly name = 'spin';
+  private spinSoundTimer: { dispose(): void } | null = null;
 
   async enter(ctx: PhaseContext): Promise<void> {
     const { ui } = ctx.stores;
@@ -25,9 +26,15 @@ export class SpinPhase implements Phase {
     ctx.reels.setSpeedMode(ctx.stores.ui.speed);
     ctx.reels.startSpin();
     if (ctx.stores.ui.speed === 'normal') {
-      ctx.ticker.schedule(300, () => ctx.sound.play('spinning', { loop: true }));
+      this.spinSoundTimer = ctx.ticker.schedule(300, () => {
+        this.spinSoundTimer = null;
+        ctx.sound.play('spinning', { loop: true });
+      });
     } else if (ctx.stores.ui.speed === 'turbo') {
-      ctx.ticker.schedule(200, () => ctx.sound.play('spinning', { loop: true }));
+      this.spinSoundTimer = ctx.ticker.schedule(200, () => {
+        this.spinSoundTimer = null;
+        ctx.sound.play('spinning', { loop: true });
+      });
     } else {
       ctx.sound.play('spinning', { loop: true });
     }
@@ -40,5 +47,14 @@ export class SpinPhase implements Phase {
     // doesn't jump while the reels are still spinning. See WinShowPhase.enter().
 
     await ctx.fsm.transition('stopSpin');
+  }
+
+  /** Cancel the delayed spinning-sound start so it cannot fire after the phase exits. */
+  skip(_ctx: PhaseContext): void {
+    this.spinSoundTimer?.dispose();
+    this.spinSoundTimer = null;
+    // Do NOT stop the sound here — if it's already playing the reels are still
+    // spinning and StopSpinPhase owns the stop. Only cancel the pending timer
+    // so it cannot fire into the wrong phase.
   }
 }

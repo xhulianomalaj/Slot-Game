@@ -49,7 +49,7 @@ export class UIStore {
   ambientEnabled = true;
   sfxEnabled = true;
   sfxVolume = 0.8;
-  ambientVolume = 0.5;
+  ambientVolume = 0.15;
 
   // Gameplay prefs
   quickSpin = false;
