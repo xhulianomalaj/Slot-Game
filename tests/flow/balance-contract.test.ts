@@ -48,6 +48,7 @@ function setup(spinResponse: { grid: string[][]; totalWin: number; winlines: unk
     ticker,
     network: network as unknown as PhaseContext['network'],
     reels: reels as unknown as PhaseContext['reels'],
+    sound: { play: vi.fn(), stop: vi.fn(), init: vi.fn(), dispose: vi.fn() } as unknown as PhaseContext['sound'],
   });
   for (const p of [new IdlePhase(), new SpinPhase(), new StopSpinPhase(), new WinShowPhase()]) {
     fsm.register(p);

@@ -23,8 +23,8 @@
     "test:components": "node ./scripts/generate-components-catalog.mjs",
     "test:import-log": "node ./scripts/import-server-log.mjs",
     "test:contract": "vitest run tests/contract",
-    "assets:pack": "assetpack --config .assetpack.mjs",
-    "assets:watch": "assetpack --config .assetpack.mjs -w",
+    "assets:pack": "assetpack --config .assetpack.cjs",
+    "assets:watch": "assetpack --config .assetpack.cjs -w",
     "assets:strip": "node ./scripts/strip-icc.mjs",
     "assets:generate": "node ./scripts/generate-assets.mjs",
     "assets:theme": "node ./scripts/generate-theme.mjs"

@@ -12,6 +12,7 @@
 import type { Analytics } from '@/infrastructure/Analytics';
 import type { AssetLoader } from '@/infrastructure/AssetLoader';
 import type { NetworkManager } from '@/infrastructure/network';
+import type { SoundManager } from '@/infrastructure/SoundManager';
 import type { Ticker } from '@/infrastructure/timing';
 import type { BackgroundPresenter } from '@/presenters/BackgroundPresenter';
 import type { RootStore } from '@/state/RootStore';
@@ -32,4 +33,5 @@ export const Tokens = {
   Assets: token<AssetLoader>('assets'),
   Scene: token<MainScene>('scene'),
   Background: token<BackgroundPresenter>('background'),
+  Sound: token<SoundManager>('sound'),
 } as const;

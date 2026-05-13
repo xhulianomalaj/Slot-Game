@@ -15,6 +15,7 @@ const MS_PER_WIN = 1400;
 export class WinShowPhase implements Phase {
   readonly name = 'winShow';
   private cancel: { dispose(): void } | null = null;
+  private winSoundTimers: { dispose(): void }[] = [];
   private ctx: PhaseContext | null = null;
 
   async enter(ctx: PhaseContext): Promise<void> {
@@ -34,6 +35,16 @@ export class WinShowPhase implements Phase {
       ctx.reels.showWin(winlines, ctx.stores.ui.currency);
       ctx.stores.balance.setLastWin(totalWin);
       ctx.stores.ui.recordWin(totalWin);
+      // Play win sound once per winning line, staggered to match each
+      // line's animation window (MS_PER_WIN apart).
+      ctx.sound.play('win');
+      for (let i = 1; i < winlines.length; i++) {
+        this.winSoundTimers.push(
+          ctx.ticker.schedule(i * MS_PER_WIN, () => ctx.sound.play('win')),
+        );
+      }
+    } else {
+      ctx.sound.play('stop');
     }
 
     this.cancel = ctx.ticker.schedule(hold, () => {
@@ -56,13 +67,20 @@ export class WinShowPhase implements Phase {
   skip(ctx: PhaseContext): void {
     this.cancel?.dispose();
     this.cancel = null;
+    this.clearWinSoundTimers();
     void ctx.fsm.transition('idle');
   }
 
   exit(): void {
     this.cancel?.dispose();
     this.cancel = null;
+    this.clearWinSoundTimers();
     this.ctx?.reels.clearWin();
     this.ctx = null;
+  }
+
+  private clearWinSoundTimers(): void {
+    for (const t of this.winSoundTimers) t.dispose();
+    this.winSoundTimers = [];
   }
 }

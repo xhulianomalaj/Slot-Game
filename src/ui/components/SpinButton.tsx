@@ -1,10 +1,11 @@
 import { observer } from '@/ui/hooks/useObserver';
-import { useFSM, useStores } from '@/ui/hooks/useStores';
+import { useFSM, useSound, useStores } from '@/ui/hooks/useStores';
 import { IconPlay, IconSkip } from './Icons';
 
 export const SpinButton = observer(() => {
   const { ui, balance } = useStores();
   const fsm = useFSM();
+  const sound = useSound();
 
   const onClick = () => {
     if (ui.spinning) {
@@ -16,6 +17,7 @@ export const SpinButton = observer(() => {
         fsm.skip();
       }
     } else {
+      sound.play('click');
       void fsm.transition('spin');
     }
   };

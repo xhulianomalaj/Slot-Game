@@ -27,6 +27,7 @@ describe('SpinPhase', () => {
       ticker: { schedule: vi.fn(), every: vi.fn(), nextFrame: vi.fn() },
       network: network as unknown as PhaseContext['network'],
       reels: reels as unknown as PhaseContext['reels'],
+      sound: { play: vi.fn(), stop: vi.fn(), init: vi.fn(), dispose: vi.fn() } as unknown as PhaseContext['sound'],
     });
 
     const stopSpin = { name: 'stopSpin', enter: vi.fn().mockResolvedValue(undefined) };

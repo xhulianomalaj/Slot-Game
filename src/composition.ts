@@ -20,6 +20,7 @@ import { ConsoleAnalytics } from '@/infrastructure/Analytics';
 import { AssetLoader } from '@/infrastructure/AssetLoader';
 import { createNetwork, type NetworkManager } from '@/infrastructure/network';
 import { ScriptableMockNetwork } from '@/infrastructure/network/ScriptableMockNetwork';
+import { SoundManager } from '@/infrastructure/SoundManager';
 import { GsapTicker, type Ticker } from '@/infrastructure/timing';
 import { BackgroundPresenter } from '@/presenters/BackgroundPresenter';
 import { ReelsPresenter } from '@/presenters/ReelsPresenter';
@@ -109,17 +110,20 @@ export async function compose({
   container.register(Tokens.Analytics, () => new ConsoleAnalytics());
   container.register(Tokens.Assets, () => new AssetLoader());
   container.register(Tokens.Scene, () => new MainScene());
+  container.register(Tokens.Sound, () => new SoundManager(stores.ui));
 
   const stores = container.get(Tokens.Stores);
   const ticker = container.get(Tokens.Ticker);
   const network = container.get(Tokens.Network);
   const assets = container.get(Tokens.Assets);
   const scene = container.get(Tokens.Scene);
+  const sound = container.get(Tokens.Sound);
 
   const fsm = new FSM({
     stores,
     ticker,
     network,
+    sound,
     reels: null as unknown as ReelsPresenter,
   });
 
@@ -130,7 +134,7 @@ export async function compose({
   // Loader is rendered statically in index.html; this only wires it to the store.
   const loaderDisposable: Disposable = mountLoader(stores.ui);
 
-  const hudDisposable: Disposable = mountHUD(hudHost, { stores, fsm });
+  const hudDisposable: Disposable = mountHUD(hudHost, { stores, fsm, sound });
 
   let hudLayer: HUDLayer | null = null;
   let inspectorDisposer: (() => void) | null = null;
@@ -179,14 +183,15 @@ export async function compose({
         await scene.loadAssets();
         stores.ui.setLoadProgress(1);
 
-        // 4) Wire reels and run. Headless drivers (Playwright) get a
-        //    StubReelsEngine so behavioral tests don't pay for ~3s of
-        //    pixi-reels animation per spin — the FSM contract is what
-        //    matters; visuals belong in screenshot tests. Humans opening
-        //    a `?test=...` URL in a real browser see the full pipeline.
+        // 4) Wire reels and run.
         const engine = useStubs ? new StubReelsEngine() : scene.createReelsEngine();
         const reels = new ReelsPresenter(engine);
         fsm.patchContext({ reels });
+
+        // 5) Initialise audio (requires a user gesture — safe here because
+        //    the player had to interact to get past the loading screen).
+        await sound.init().catch((err) => console.warn('[composition] audio init failed:', err));
+        sound.startMusic();
 
         // 5) Register the background presenter — late-bound because the
         //    BackgroundLayer is constructed inside MainScene.init().
@@ -231,6 +236,7 @@ export async function compose({
       hudLayer = null;
       loaderDisposable.dispose();
       hudDisposable.dispose();
+      sound.dispose();
       network.dispose?.();
       scene.dispose();
     },

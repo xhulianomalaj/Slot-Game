@@ -24,9 +24,18 @@ export class SpinPhase implements Phase {
 
     ctx.reels.setSpeedMode(ctx.stores.ui.speed);
     ctx.reels.startSpin();
+    if (ctx.stores.ui.speed === 'normal') {
+      ctx.ticker.schedule(300, () => ctx.sound.play('spinning', { loop: true }));
+    } else if (ctx.stores.ui.speed === 'turbo') {
+      ctx.ticker.schedule(200, () => ctx.sound.play('spinning', { loop: true }));
+    } else {
+      ctx.sound.play('spinning', { loop: true });
+    }
 
     const response = await ctx.network.spin({ bet: ctx.stores.balance.bet });
     ctx.stores.data.setResponse(response);
+    // spinning sound is stopped in StopSpinPhase after reels fully land.
+
     // Balance is NOT applied here — it's deferred to WinShowPhase so the HUD
     // doesn't jump while the reels are still spinning. See WinShowPhase.enter().
 

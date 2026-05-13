@@ -13,6 +13,7 @@ export class StopSpinPhase implements Phase {
     }
 
     await ctx.reels.stopWithResult(grid);
+    ctx.sound.stop('spinning');
     await ctx.fsm.transition('winShow');
   }
 

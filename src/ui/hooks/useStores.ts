@@ -1,12 +1,14 @@
 import { createContext } from 'preact';
 import { useContext } from 'preact/hooks';
 import type { FSM } from '@/flow/fsm';
+import type { SoundManager } from '@/infrastructure/SoundManager';
 import type { RootStore } from '@/state/RootStore';
 
 // StoresContext — the root providers wrap the app, components read via useStores/useFSM.
 export interface UIContext {
   stores: RootStore;
   fsm: FSM;
+  sound: SoundManager;
 }
 
 export const UIContextProvider = createContext<UIContext | null>(null);
@@ -23,4 +25,8 @@ export function useStores(): RootStore {
 
 export function useFSM(): FSM {
   return useUI().fsm;
+}
+
+export function useSound(): SoundManager {
+  return useUI().sound;
 }
