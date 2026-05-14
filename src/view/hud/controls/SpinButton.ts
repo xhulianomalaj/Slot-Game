@@ -50,7 +50,16 @@ export class SpinButton extends Container implements Disposable {
   private onClick(): void {
     const { ui } = this.stores;
     if (ui.spinning) {
-      this.fsm.skip();
+      if (ui.isAutospinning) {
+        ui.stopAutospin();
+        return;
+      }
+      // Only respond if stop is currently allowed. Disable immediately so the
+      // button cannot be pressed again until win animations complete.
+      if (ui.stopEnabled) {
+        ui.setStopEnabled(false);
+        this.fsm.skip();
+      }
       return;
     }
     if (!ui.spinEnabled) return;
@@ -59,15 +68,33 @@ export class SpinButton extends Container implements Disposable {
 
   private draw(): void {
     const { ui } = this.stores;
-    const spinning = ui.spinning;
-    const enabled = spinning || ui.spinEnabled;
-    const fill = !enabled ? COLOR_DISABLED : spinning ? COLOR_STOP : this.hovered ? COLOR_HOVER : COLOR_IDLE;
+    const canStop = ui.spinning && ui.stopEnabled;
+    // During autoplay the button is always live so the user can cancel.
+    const canCancelAutoplay = ui.spinning && ui.isAutospinning;
+    const canSpin = !ui.spinning && ui.spinEnabled;
+    const enabled = canStop || canCancelAutoplay || canSpin;
+    const fill = !enabled
+      ? COLOR_DISABLED
+      : canStop || canCancelAutoplay
+        ? COLOR_STOP
+        : this.hovered
+          ? COLOR_HOVER
+          : COLOR_IDLE;
 
     this.bg.clear();
     this.bg.circle(0, 0, RADIUS).fill({ color: fill });
     this.bg.circle(0, 0, RADIUS).stroke({ color: 0xffffff, alpha: 0.08, width: 2 });
 
-    this.labelText.text = spinning ? 'STOP' : 'SPIN';
+    if (canStop || canCancelAutoplay) {
+      // Square stop icon — rounded rect on top of the circle background.
+      const s = 30;
+      this.bg.roundRect(-s / 2, -s / 2, s, s, 6).fill({ color: 0xffffff });
+      this.labelText.visible = false;
+    } else {
+      this.labelText.visible = true;
+      this.labelText.text = 'SPIN';
+    }
+
     this.labelText.style.fill = enabled ? 0x0e1d21 : 0x6a7a80;
     this.alpha = enabled ? 1 : 0.6;
   }

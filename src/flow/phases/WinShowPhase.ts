@@ -1,4 +1,8 @@
 import type { Phase, PhaseContext } from '../Phase';
+import type { SpeedMode } from '@/state/UIStore';
+
+/** Win-display duration multiplier per speed mode (mirrors reelsEngineAdapter). */
+const WIN_SCALE: Record<SpeedMode, number> = { normal: 1, turbo: 0.6, superTurbo: 0.35 };
 
 const WIN_HOLD_MS = 1500;
 const AUTOSPIN_DELAY_MS = 450;
@@ -21,8 +25,10 @@ export class WinShowPhase implements Phase {
   async enter(ctx: PhaseContext): Promise<void> {
     this.ctx = ctx;
     const { winlines, totalWin, serverBalance } = ctx.stores.data;
+    const speedScale = WIN_SCALE[ctx.stores.ui.speed];
+    const msPerWin = MS_PER_WIN * speedScale;
     const hold = winlines.length > 0 && totalWin > 0
-      ? Math.max(WIN_HOLD_MS, winlines.length * MS_PER_WIN)
+      ? Math.max(WIN_HOLD_MS * speedScale, winlines.length * msPerWin)
       : AUTOSPIN_DELAY_MS;
 
     // Apply the server's authoritative post-win balance now — reels have
@@ -40,7 +46,7 @@ export class WinShowPhase implements Phase {
       ctx.sound.play('win');
       for (let i = 1; i < winlines.length; i++) {
         this.winSoundTimers.push(
-          ctx.ticker.schedule(i * MS_PER_WIN, () => ctx.sound.play('win')),
+          ctx.ticker.schedule(i * msPerWin, () => ctx.sound.play('win')),
         );
       }
     }

@@ -131,6 +131,7 @@ export class UIStore {
       isAutospinning: computed,
       net: computed,
       setSpinning: action,
+      setStopEnabled: action,
       setSpeed: action,
       toggleSound: action,
       toggleMusic: action,
@@ -178,8 +179,15 @@ export class UIStore {
   setSpinning(s: boolean): void {
     this.spinning = s;
     this.spinEnabled = !s;
-    this.stopEnabled = s;
+    // stopEnabled is NOT set here — SpinPhase enables it once the reels are
+    // visually spinning (after startSpin). This creates the brief disabled
+    // window between click and reel start, and prevents skipping win animations.
+    this.stopEnabled = false;
     if (!s) this.autospinStopping = false;
+  }
+
+  setStopEnabled(v: boolean): void {
+    this.stopEnabled = v;
   }
   setSpeed(speed: SpeedMode): void {
     this.speed = speed;

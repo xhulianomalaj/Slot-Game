@@ -30,6 +30,17 @@ const SPEED_NAME: Record<SpeedMode, string> = {
   superTurbo: 'superTurbo',
 };
 
+/**
+ * Win-animation duration multiplier per speed mode.
+ * Applied to symbol tweens, floating label durations, WinPresenter stagger
+ * and cycleGap, and the WinShowPhase hold timer.
+ */
+const WIN_SCALE: Record<SpeedMode, number> = {
+  normal: 1,
+  turbo: 0.6,
+  superTurbo: 0.35,
+};
+
 function formatAmount(amount: number, currency: string): string {
   try {
     const parts = new Intl.NumberFormat(undefined, {
@@ -53,15 +64,23 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   let spinPromise: Promise<unknown> | null = null;
 
   // WinPresenter handles playWin() calls on each winning cell and dims losers.
-  // We use a custom symbolAnim so we can also trigger particles on the symbol.
-  const winPresenter = new WinPresenter(reelSet, {
-    dimLosers: { alpha: 0.35 },
-    stagger: 60,   // left-to-right sweep across payline cells
-    symbolAnim: (symbol) => {
-      if (symbol instanceof FixedSpriteSymbol) return symbol.playWin();
-      return Promise.resolve();
-    },
-  });
+  // Rebuilt on every speed change so stagger, cycleGap, and symbol-anim duration
+  // all scale together. setSpeedMode() runs at the start of SpinPhase, well
+  // before any win animation begins, so there is never an in-flight presenter.
+  let _winPresenterSpeed: SpeedMode = 'normal';
+  function makeWinPresenter(speed: SpeedMode): WinPresenter {
+    const scale = WIN_SCALE[speed];
+    return new WinPresenter(reelSet, {
+      dimLosers: { alpha: 0.35 },
+      stagger: Math.round(60 * scale),   // left-to-right sweep across payline cells
+      cycleGap: Math.round(400 * scale),
+      symbolAnim: (symbol) => {
+        if (symbol instanceof FixedSpriteSymbol) return symbol.playWin(scale);
+        return Promise.resolve();
+      },
+    });
+  }
+  let winPresenter = makeWinPresenter('normal');
 
   // Layer for floating win amount labels — sits on top of the reelSet.
   const labelsLayer = new Container();
@@ -105,7 +124,7 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   }
 
   /** Spawn floating $ labels for a single winline's cells. */
-  function spawnLabelsForWinline(line: Winline, currency: string): void {
+  function spawnLabelsForWinline(line: Winline, currency: string, scale: number): void {
     const share = line.amount / line.positions.length;
     for (const pos of line.positions) {
       // getCellBounds gives accurate reelSet-local coords without hardcoded constants.
@@ -136,16 +155,16 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
       labelsLayer.addChild(label);
 
       const tl = gsap.timeline()
-        .to(label, { alpha: 1, duration: 0.15, ease: 'power2.out' }, 0)
-        .to(label.scale, { x: 1.15, y: 1.15, duration: 0.18, ease: 'back.out(2)' }, 0)
-        .to(label.scale, { x: 1, y: 1, duration: 0.12, ease: 'power2.inOut' }, 0.18)
-        .to(label.position, { y: cy - 48, duration: 0.9, ease: 'power1.out' }, 0.2)
-        .to(label, { alpha: 0, duration: 0.35, ease: 'power2.in' }, 0.75)
+        .to(label, { alpha: 1, duration: 0.15 * scale, ease: 'power2.out' }, 0)
+        .to(label.scale, { x: 1.15, y: 1.15, duration: 0.18 * scale, ease: 'back.out(2)' }, 0)
+        .to(label.scale, { x: 1, y: 1, duration: 0.12 * scale, ease: 'power2.inOut' }, 0.18 * scale)
+        .to(label.position, { y: cy - 48, duration: 0.9 * scale, ease: 'power1.out' }, 0.2 * scale)
+        .to(label, { alpha: 0, duration: 0.35 * scale, ease: 'power2.in' }, 0.75 * scale)
         .call(() => {
           const idx = labelTimelines.indexOf(tl);
           if (idx >= 0) labelTimelines.splice(idx, 1);
           label.destroy();
-        }, undefined, 1.1);
+        }, undefined, 1.1 * scale);
       labelTimelines.push(tl);
     }
   }
@@ -190,6 +209,11 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
     },
     setSpeedMode(mode: SpeedMode) {
       reelSet.setSpeed(SPEED_NAME[mode]);
+      if (mode !== _winPresenterSpeed) {
+        winPresenter.destroy();
+        winPresenter = makeWinPresenter(mode);
+        _winPresenterSpeed = mode;
+      }
     },
     forceStop() {
       // requestSkip() queues the slam-stop if setResult() hasn't arrived yet,
@@ -215,10 +239,11 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
       // so labels appear in sync with the cell animations — not all at once.
       // Also clear any labels from the previous win first — cells can overlap
       // between lines, and stacking two labels at the same position causes jitter.
+      const winScale = WIN_SCALE[_winPresenterSpeed];
       function onWinGroup(win: Win): void {
         clearLabels();
         const line = win.id !== undefined ? winlines[win.id] : undefined;
-        if (line) spawnLabelsForWinline(line, currency);
+        if (line) spawnLabelsForWinline(line, currency, winScale);
       }
       function onWinEnd(reason: string): void {
         removeWinListeners?.();

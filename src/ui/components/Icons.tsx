@@ -29,6 +29,28 @@ const I =
     );
   };
 
+// Filled-shape variant — icons that are solid rather than stroked.
+const F =
+  (d: string, title = 'Icon') =>
+  (p: IconProps) => {
+    const { title: t = title, ...rest } = p;
+    return (
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        stroke="none"
+        role="img"
+        aria-label={t}
+        {...rest}
+      >
+        <title>{t}</title>
+        <path d={d} />
+      </svg>
+    );
+  };
+
 export const IconPlay = I('M8 5v14l11-7z', 'Play');
 export const IconPause = I('M6 4h4v16H6zM14 4h4v16h-4z', 'Pause');
 export const IconSkip = I('M5 4l10 8-10 8V4zM17 4h2v16h-2z', 'Skip');
@@ -45,3 +67,4 @@ export const IconRocket = I(
   'Super turbo',
 );
 export const IconRepeat = I('M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3', 'Autoplay');
+export const IconStop = F('M4 4h16v16H4z', 'Stop');

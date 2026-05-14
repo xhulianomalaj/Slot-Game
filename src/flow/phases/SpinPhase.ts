@@ -25,6 +25,9 @@ export class SpinPhase implements Phase {
 
     ctx.reels.setSpeedMode(ctx.stores.ui.speed);
     ctx.reels.startSpin();
+    // Stop button stays DISABLED here — SpinPhase.skip() only cancels the
+    // sound timer; it cannot fast-forward the reels. The button is enabled
+    // at the start of StopSpinPhase, where skip() → forceStop() actually works.
     if (ctx.stores.ui.speed === 'normal') {
       this.spinSoundTimer = ctx.ticker.schedule(300, () => {
         this.spinSoundTimer = null;

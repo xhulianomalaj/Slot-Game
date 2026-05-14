@@ -1,6 +1,6 @@
 import { observer } from '@/ui/hooks/useObserver';
 import { useFSM, useSound, useStores } from '@/ui/hooks/useStores';
-import { IconPlay, IconSkip } from './Icons';
+import { IconPlay, IconStop } from './Icons';
 
 export const SpinButton = observer(() => {
   const { ui, balance } = useStores();
@@ -12,8 +12,9 @@ export const SpinButton = observer(() => {
       if (ui.isAutospinning) {
         // Stop autoplay after this spin; animation finishes naturally.
         ui.stopAutospin();
-      } else {
-        // Manual spin: skip/fast-forward the animation.
+      } else if (ui.stopEnabled) {
+        // Disable button immediately — win animations must play out fully.
+        ui.setStopEnabled(false);
         fsm.skip();
       }
     } else {
@@ -22,14 +23,17 @@ export const SpinButton = observer(() => {
     }
   };
 
-  // Disabled when: no spin is possible at all, OR stop was already requested
-  // and we're waiting for the current animation to finish.
+  // Disabled when:
+  //  • not spinning and spin isn’t allowed (balance / FSM guard)
+  //  • stop was clicked — waiting for win animations to finish
+  //  • autoplay is in the process of stopping
   const disabled =
     (!ui.spinning && !ui.spinEnabled && !ui.isAutospinning) ||
     ui.autospinStopping ||
+    (ui.spinning && !ui.stopEnabled && !ui.isAutospinning) ||
     (!ui.spinning && balance.balance < balance.bet);
 
-  const isStopState = ui.spinning;
+  const isStopState = ui.spinning && ui.stopEnabled;
 
   return (
     <button
@@ -42,7 +46,7 @@ export const SpinButton = observer(() => {
       data-pixi-label="spin"
       data-state={isStopState ? 'stop' : 'spin'}
     >
-      {isStopState ? <IconSkip /> : <IconPlay />}
+      {isStopState ? <IconStop /> : <IconPlay />}
       {ui.isAutospinning && (
         <span class="spin-autospin-badge" data-testid="autospin-remaining">
           {ui.autospinRemaining}

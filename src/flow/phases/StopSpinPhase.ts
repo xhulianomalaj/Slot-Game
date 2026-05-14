@@ -6,6 +6,11 @@ export class StopSpinPhase implements Phase {
   async enter(ctx: PhaseContext): Promise<void> {
     const { grid, teasingReels } = ctx.stores.data;
 
+    // Enable stop button NOW — StopSpinPhase.skip() calls forceStop() which
+    // actually fast-forwards the reel animation. This is the earliest moment
+    // the stop action does something visible.
+    ctx.stores.ui.setStopEnabled(true);
+
     // If the server told us which reels to tease, pass that to the engine.
     // The client does not decide teasers — it plays back what came over the wire.
     if (teasingReels?.length) {
@@ -36,6 +41,10 @@ export class StopSpinPhase implements Phase {
     };
 
     await ctx.reels.stopWithResult(grid);
+
+    // All reels have landed — disable stop before entering WinShowPhase so
+    // the button stays dark through the entire win animation sequence.
+    ctx.stores.ui.setStopEnabled(false);
 
     // Fallback: silence spinning in case penultimate never fired (e.g. single reel).
     ctx.sound.stop('spinning');

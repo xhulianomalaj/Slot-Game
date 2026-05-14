@@ -65,12 +65,12 @@ export class FixedSpriteSymbol extends SpriteSymbol {
 
   // ── Win animation ─────────────────────────────────────────────────────────
 
-  override async playWin(): Promise<void> {
+  override async playWin(timeScale = 1): Promise<void> {
     this._stopIdleAnim();
     this._killWinTimeline();
     this._destroyGlow();
     this._killParticles();
-    this._burstParticles();
+    this._burstParticles(timeScale);
 
     // Additive-blend glow overlay — same texture, GPU blends src+dst directly.
     const baseSprite = this.view.children[0] as Sprite;
@@ -83,6 +83,7 @@ export class FixedSpriteSymbol extends SpriteSymbol {
     this.view.addChild(glow);
     this._glowSprite = glow;
 
+    const ts = timeScale;
     return new Promise((resolve) => {
       this._winTimeline = gsap
         .timeline({
@@ -92,21 +93,21 @@ export class FixedSpriteSymbol extends SpriteSymbol {
           },
         })
         // 1) Pop up with overshoot
-        .to(this.view.scale, { x: 1.35, y: 1.35, duration: 0.18, ease: 'back.out(2.5)' }, 0)
+        .to(this.view.scale, { x: 1.35, y: 1.35, duration: 0.18 * ts, ease: 'back.out(2.5)' }, 0)
         // 2) Glow flash in sync with the pop (alpha 0 → 0.65 → 0)
-        .to(glow, { alpha: 0.65, duration: 0.12, ease: 'power2.out' }, 0)
-        .to(glow, { alpha: 0,    duration: 0.32, ease: 'power2.in'  }, 0.16)
+        .to(glow, { alpha: 0.65, duration: 0.12 * ts, ease: 'power2.out' }, 0)
+        .to(glow, { alpha: 0,    duration: 0.32 * ts, ease: 'power2.in'  }, 0.16 * ts)
         // 3) Rotation wobble — left, right, centre
-        .to(this.view, { rotation:  0.13, duration: 0.09, ease: 'power1.inOut' }, 0.16)
-        .to(this.view, { rotation: -0.13, duration: 0.09, ease: 'power1.inOut' }, 0.25)
-        .to(this.view, { rotation:  0,    duration: 0.09, ease: 'power1.inOut' }, 0.34)
+        .to(this.view, { rotation:  0.13, duration: 0.09 * ts, ease: 'power1.inOut' }, 0.16 * ts)
+        .to(this.view, { rotation: -0.13, duration: 0.09 * ts, ease: 'power1.inOut' }, 0.25 * ts)
+        .to(this.view, { rotation:  0,    duration: 0.09 * ts, ease: 'power1.inOut' }, 0.34 * ts)
         // 4) Settle back to normal size with a small bounce
-        .to(this.view.scale, { x: 1, y: 1, duration: 0.22, ease: 'back.out(1.8)' }, 0.28)
+        .to(this.view.scale, { x: 1, y: 1, duration: 0.22 * ts, ease: 'back.out(1.8)' }, 0.28 * ts)
         // 5) Second mini-pulse with a quick glow re-flash
-        .to(this.view.scale, { x: 1.15, y: 1.15, duration: 0.13, ease: 'power2.out'   }, 0.56)
-        .to(glow,            { alpha: 0.4,        duration: 0.10, ease: 'power2.out'   }, 0.56)
-        .to(this.view.scale, { x: 1,    y: 1,    duration: 0.18, ease: 'power2.inOut' }, 0.69)
-        .to(glow,            { alpha: 0,           duration: 0.18, ease: 'power2.in'   }, 0.69);
+        .to(this.view.scale, { x: 1.15, y: 1.15, duration: 0.13 * ts, ease: 'power2.out'   }, 0.56 * ts)
+        .to(glow,            { alpha: 0.4,        duration: 0.10 * ts, ease: 'power2.out'   }, 0.56 * ts)
+        .to(this.view.scale, { x: 1,    y: 1,    duration: 0.18 * ts, ease: 'power2.inOut' }, 0.69 * ts)
+        .to(glow,            { alpha: 0,           duration: 0.18 * ts, ease: 'power2.in'   }, 0.69 * ts);
     });
   }
 
@@ -190,7 +191,7 @@ export class FixedSpriteSymbol extends SpriteSymbol {
 
   // ── Particle burst ────────────────────────────────────────────────────────
 
-  private _burstParticles(): void {
+  private _burstParticles(timeScale = 1): void {
     const cx = this._lastW / 2;
     const cy = this._lastH / 2;
     if (cx === 0) return;
@@ -207,7 +208,7 @@ export class FixedSpriteSymbol extends SpriteSymbol {
       const speed = 60 + Math.random() * 80;
       const size = 4 + Math.random() * 4;
       const color = COLORS[Math.floor(Math.random() * COLORS.length)]!;
-      const dur = 0.55 + Math.random() * 0.3;
+      const dur = (0.55 + Math.random() * 0.3) * timeScale;
 
       const dot = new Graphics().circle(0, 0, size).fill({ color });
       dot.x = cx;
