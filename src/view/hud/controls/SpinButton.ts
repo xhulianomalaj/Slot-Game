@@ -63,6 +63,7 @@ export class SpinButton extends Container implements Disposable {
       return;
     }
     if (!ui.spinEnabled) return;
+    if (this.stores.modals.stack.length > 0) return;
     void this.fsm.transition('spin').catch((err) => console.error('[SpinButton] spin failed', err));
   }
 

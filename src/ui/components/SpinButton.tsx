@@ -3,7 +3,7 @@ import { useFSM, useSound, useStores } from '@/ui/hooks/useStores';
 import { IconPlay, IconStop } from './Icons';
 
 export const SpinButton = observer(() => {
-  const { ui, balance } = useStores();
+  const { ui, balance, modals } = useStores();
   const fsm = useFSM();
   const sound = useSound();
 
@@ -18,6 +18,7 @@ export const SpinButton = observer(() => {
         fsm.skip();
       }
     } else {
+      if (modals.stack.length > 0) return;
       sound.play('click');
       void fsm.transition('spin');
     }

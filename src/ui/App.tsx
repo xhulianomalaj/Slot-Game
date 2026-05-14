@@ -9,14 +9,16 @@ import { MenuSlot } from './slots/menu';
 import { ModalsSlot } from './slots/modals';
 
 const AppInner = observer(() => {
-  const { ui } = useStores();
+  const { ui, modals } = useStores();
   const fsm = useFSM();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return;
       if (!ui.spaceToSpin) return;
+      if (!ui.tappedToStart) return;
       if (ui.menuOpen) return;
+      if (modals.stack.length > 0) return;
       // Don't fire if the focused element is a button/input (they handle Space themselves).
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
@@ -29,7 +31,7 @@ const AppInner = observer(() => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ui, fsm]);
+  }, [ui, modals, fsm]);
 
   return (
     <div class="hud">
