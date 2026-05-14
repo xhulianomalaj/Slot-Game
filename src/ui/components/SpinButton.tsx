@@ -8,12 +8,14 @@ export const SpinButton = observer(() => {
   const sound = useSound();
 
   const onClick = () => {
+    if (ui.isAutospinning && ui.spinning) {
+      // Cancel autoplay while a spin round is in progress.
+      ui.stopAutospin();
+      return;
+    }
     if (ui.spinning) {
-      if (ui.isAutospinning) {
-        // Stop autoplay after this spin; animation finishes naturally.
-        ui.stopAutospin();
-      } else if (ui.stopEnabled) {
-        // Disable button immediately — win animations must play out fully.
+      if (ui.stopEnabled) {
+        // Disable button immediately - win animations must play out fully.
         ui.setStopEnabled(false);
         fsm.skip();
       }
@@ -32,9 +34,10 @@ export const SpinButton = observer(() => {
     (!ui.spinning && !ui.spinEnabled && !ui.isAutospinning) ||
     ui.autospinStopping ||
     (ui.spinning && !ui.stopEnabled && !ui.isAutospinning) ||
-    (!ui.spinning && balance.balance < balance.bet);
+    (!ui.spinning && !ui.isAutospinning && balance.balance < balance.bet);
 
-  const isStopState = ui.spinning && ui.stopEnabled;
+  // Show stop icon only while a spin is in progress (autoplay or manual stop-enabled).
+  const isStopState = ui.spinning && (ui.isAutospinning || ui.stopEnabled);
 
   return (
     <button

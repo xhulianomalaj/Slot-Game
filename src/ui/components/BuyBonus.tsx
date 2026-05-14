@@ -14,7 +14,7 @@ export function BuyBonus({ onClick }: { onClick?: () => void }) {
     void modals.alert({
       icon: 'info',
       title: 'Buy Bonus',
-      description: 'This option coming soon!',
+      description: 'This option is coming soon!',
       ok: 'OK',
     });
   }

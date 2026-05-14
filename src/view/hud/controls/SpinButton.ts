@@ -49,11 +49,13 @@ export class SpinButton extends Container implements Disposable {
 
   private onClick(): void {
     const { ui } = this.stores;
+    // isAutospinning can be true before the first spin fires (user clicked the
+    // autoplay button but hasn't started yet). Only cancel when also spinning.
+    if (ui.isAutospinning && ui.spinning) {
+      ui.stopAutospin();
+      return;
+    }
     if (ui.spinning) {
-      if (ui.isAutospinning) {
-        ui.stopAutospin();
-        return;
-      }
       // Only respond if stop is currently allowed. Disable immediately so the
       // button cannot be pressed again until win animations complete.
       if (ui.stopEnabled) {
@@ -70,7 +72,7 @@ export class SpinButton extends Container implements Disposable {
   private draw(): void {
     const { ui } = this.stores;
     const canStop = ui.spinning && ui.stopEnabled;
-    // During autoplay the button is always live so the user can cancel.
+    // Show cancel-autoplay state only while a spin round is actually running.
     const canCancelAutoplay = ui.spinning && ui.isAutospinning;
     const canSpin = !ui.spinning && ui.spinEnabled;
     const enabled = canStop || canCancelAutoplay || canSpin;
