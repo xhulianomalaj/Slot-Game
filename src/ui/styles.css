@@ -95,7 +95,7 @@
   column-gap: 28px;
   padding: 12px 24px 40px;
   /* Deep purple-black — echoes the reel panel's dark purple/navy tones */
-  background: linear-gradient(180deg, rgba(14, 10, 30, 0.86), rgba(6, 4, 18, 0.97));
+  background: linear-gradient(180deg, rgba(14, 10, 30, 0.4), rgba(6, 4, 18, 0.6));
   border-top: 1px solid rgba(200, 160, 24, 0.55);
   box-shadow:
     0 -4px 28px rgba(0, 0, 0, 0.55),

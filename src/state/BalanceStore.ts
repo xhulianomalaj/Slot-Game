@@ -34,6 +34,7 @@ export class BalanceStore {
     if (this.balance < this.bet) {
       throw new Error(`[BalanceStore] insufficient balance: ${this.balance} < ${this.bet}`);
     }
+    this.lastWin = 0; // clear win display the moment a new spin starts
     this.balance -= this.bet;
   }
 
