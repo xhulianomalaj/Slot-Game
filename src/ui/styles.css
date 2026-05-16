@@ -193,6 +193,14 @@
 .buy-bonus:active {
   transform: scale(0.96);
 }
+.buy-bonus:disabled,
+.buy-bonus[disabled] {
+  opacity: 0.4;
+  filter: grayscale(60%);
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
 .buy-bonus__img {
   position: absolute;
   inset: 0;

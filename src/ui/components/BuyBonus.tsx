@@ -3,11 +3,13 @@
 // endpoint when ready. Safe to remove if your game doesn't offer bonus-buy.
 
 import { useT } from '@/i18n/useT';
+import { observer } from '@/ui/hooks/useObserver';
 import { useStores } from '@/ui/hooks/useStores';
 
-export function BuyBonus({ onClick }: { onClick?: () => void }) {
+export const BuyBonus = observer(function BuyBonus({ onClick }: { onClick?: () => void }) {
   const t = useT();
-  const { modals } = useStores();
+  const { modals, ui } = useStores();
+  const disabled = ui.spinning || ui.isAutospinning;
 
   function handleClick(): void {
     if (onClick) { onClick(); return; }
@@ -20,7 +22,7 @@ export function BuyBonus({ onClick }: { onClick?: () => void }) {
   }
 
   return (
-    <button type="button" class="buy-bonus" aria-label={t('hud.buyBonus')} data-testid="buy-bonus" onClick={handleClick}>
+    <button type="button" class="buy-bonus" aria-label={t('hud.buyBonus')} data-testid="buy-bonus" disabled={disabled} onClick={handleClick}>
       <img
         src="/assets/theme/buy-bonus-badge.png"
         alt=""
@@ -33,4 +35,4 @@ export function BuyBonus({ onClick }: { onClick?: () => void }) {
       </span>
     </button>
   );
-}
+});
