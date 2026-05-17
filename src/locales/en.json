@@ -20,11 +20,21 @@
     "bet": "Bet",
     "spin": "Spin",
     "stop": "Stop",
-    "speed": { "normal": "Normal", "turbo": "Turbo", "superTurbo": "Super" },
-    "sound": { "on": "Mute sound", "off": "Enable sound" },
+    "speed": {
+      "normal": "Normal",
+      "turbo": "Turbo",
+      "superTurbo": "Super"
+    },
+    "sound": {
+      "on": "Mute sound",
+      "off": "Enable sound"
+    },
     "menu": "Open menu",
     "info": "Game rules",
-    "autospin": { "start": "Autospin", "cancel": "Cancel autospin" },
+    "autospin": {
+      "start": "Autospin",
+      "cancel": "Cancel autospin"
+    },
     "buyBonus": "Buy bonus",
     "buyBonusTop": "BUY",
     "buyBonusBottom": "BONUS",
@@ -37,7 +47,7 @@
     "close": "Close",
     "on": "On",
     "off": "Off",
-    "unlimited": "∞",
+    "unlimited": "âˆž",
     "tabs": {
       "settings": "Settings",
       "autoplay": "Autoplay",
@@ -131,106 +141,6 @@
       "language": "Language",
       "viewRules": "Game rules",
       "viewRulesSub": "Paytable, paylines, features"
-    }
-  },
-  "rules": {
-    "title": "Game rules",
-    "sections": {
-      "how-to-play": "How to play",
-      "paytable": "Paytable",
-      "paylines": "Paylines",
-      "features": "Features"
-    },
-    "how": {
-      "heading": "How to play",
-      "subheading": "Spin the reels to win prizes.",
-      "steps": [
-        { "title": "Set your bet", "body": "Use the ± buttons to step through available bet sizes." },
-        {
-          "title": "Spin the reels",
-          "body": "Press the orange button to begin a round. Server returns the result; the reels play it back."
-        },
-        {
-          "title": "Win on paylines",
-          "body": "Matching symbols on an active payline from left to right pay according to the paytable."
-        },
-        {
-          "title": "Use speed modes",
-          "body": "Turbo and Super skip animations for faster play. Autospin loops rounds automatically."
-        }
-      ],
-      "tip": {
-        "title": "Tip",
-        "body": "Click the spin button again during a spin to slam-stop the reels and reveal your result immediately."
-      }
-    },
-    "paytable": {
-      "heading": "Payouts",
-      "intro": "Payouts shown as multipliers of your bet. Wins pay left-to-right on active paylines.",
-      "columns": { "symbol": "Symbol", "x2": "2×", "x3": "3×", "x4": "4×", "x5": "5×" },
-      "rows": [
-        { "symbol": "wild",    "name": "Wild",        "payouts": ["—", "100×", "500×",  "2500×"] },
-        { "symbol": "seven",   "name": "Lucky Seven", "payouts": ["—", "50×",  "200×",  "1000×"] },
-        { "symbol": "bar",     "name": "Bar",         "payouts": ["—", "25×",  "100×",  "500×"]  },
-        { "symbol": "bell",    "name": "Bell",        "payouts": ["—", "15×",  "60×",   "250×"]  },
-        { "symbol": "cherry",  "name": "Cherry",      "payouts": ["—", "10×",  "40×",   "150×"]  },
-        { "symbol": "plum",    "name": "Plum",        "payouts": ["—", "8×",   "30×",   "100×"]  },
-        { "symbol": "orange",  "name": "Orange",      "payouts": ["—", "5×",   "20×",   "60×"]   },
-        { "symbol": "lemon",   "name": "Lemon",       "payouts": ["—", "5×",   "15×",   "50×"]   },
-        { "symbol": "scatter", "name": "Scatter",     "payouts": ["—", "5×",   "20×",   "100×"]  }
-      ],
-      "notes": [
-        "All payouts are authoritative on the server; the table shown here is for reference only.",
-        "Only the highest win per active payline pays per spin.",
-        "Malfunction voids all pays and plays."
-      ]
-    },
-    "paylines": {
-      "heading": "Paylines",
-      "intro": "Your bet activates every payline. Matching symbols count from left to right starting on reel 1.",
-      "lines": [
-        { "label": "Middle row", "pattern": [1, 1, 1, 1, 1] },
-        { "label": "Top row", "pattern": [0, 0, 0, 0, 0] },
-        { "label": "Bottom row", "pattern": [2, 2, 2, 2, 2] },
-        { "label": "V shape", "pattern": [0, 1, 2, 1, 0] },
-        { "label": "Inverted V", "pattern": [2, 1, 0, 1, 2] },
-        { "label": "Zigzag up", "pattern": [1, 0, 0, 0, 1] },
-        { "label": "Zigzag down", "pattern": [1, 2, 2, 2, 1] },
-        { "label": "Arrow right", "pattern": [0, 0, 1, 2, 2] },
-        { "label": "Arrow left", "pattern": [2, 2, 1, 0, 0] },
-        { "label": "Wave", "pattern": [0, 2, 1, 2, 0] }
-      ]
-    },
-    "features": {
-      "heading": "Features",
-      "blocks": [
-        {
-          "icon": "wild",
-          "title": "Wild",
-          "body": "The Wild substitutes for any regular symbol to complete a winning payline. It pays its own higher multipliers (100× / 500× / 2500×) when it forms a winning combination on its own."
-        },
-        {
-          "icon": "scatter",
-          "title": "Scatter",
-          "body": "Scatters pay anywhere on the reels and are not bound to paylines. 3 or more scatters on a single spin pay a cash prize based on total bet."
-        },
-        {
-          "icon": "bonus",
-          "title": "Anticipation",
-          "body": "When the server anticipates a big payoff, specific reels slow down before landing. Watch the reels for the tell — the feel is the same as on the casino floor."
-        }
-      ],
-      "specs": {
-        "heading": "Specifications",
-        "rows": [
-          { "key": "RTP", "value": "96.00%" },
-          { "key": "Volatility", "value": "Medium" },
-          { "key": "Reels", "value": "5 × 3" },
-          { "key": "Paylines", "value": "20" },
-          { "key": "Min / max bet", "value": "$0.20 – $100.00" },
-          { "key": "Max win", "value": "2500× bet" }
-        ]
-      }
     }
   }
 }

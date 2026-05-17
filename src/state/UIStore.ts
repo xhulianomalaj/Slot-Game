@@ -69,9 +69,6 @@ export class UIStore {
   // Menu state
   menuOpen = false;
   menuTab: MenuTab = 'paytable';
-  rulesOpen = false;
-  rulesTab = 'how-to-play';
-
   // Session-derived
   sessionStartedAt = Date.now();
   totalStaked = 0;
@@ -113,8 +110,6 @@ export class UIStore {
       sessionLossLimit: observable,
       menuOpen: observable,
       menuTab: observable,
-      rulesOpen: observable,
-      rulesTab: observable,
       sessionStartedAt: observable,
       totalStaked: observable,
       totalWon: observable,
@@ -151,9 +146,6 @@ export class UIStore {
       openMenu: action,
       closeMenu: action,
       setMenuTab: action,
-      openRules: action,
-      closeRules: action,
-      setRulesTab: action,
       startAutospin: action,
       stopAutospin: action,
       tickAutospin: action,
@@ -252,18 +244,6 @@ export class UIStore {
   }
   setMenuTab(tab: MenuTab): void {
     this.menuTab = tab;
-  }
-
-  openRules(tab?: string): void {
-    this.rulesOpen = true;
-    // Always reset to the first tab when no specific tab is requested.
-    this.rulesTab = tab ?? 'how-to-play';
-  }
-  closeRules(): void {
-    this.rulesOpen = false;
-  }
-  setRulesTab(tab: string): void {
-    this.rulesTab = tab;
   }
 
   startAutospin(count: number): void {

@@ -164,6 +164,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.sp-pt-note {
+  font-size: 12px;
+  color: rgba(231, 238, 240, 0.5);
+  margin: -8px 0 12px;
+}
+
 .sp-pt-table {
   border: 1px solid rgba(231, 238, 240, 0.06);
   border-radius: 10px;

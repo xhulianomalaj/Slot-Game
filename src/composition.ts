@@ -38,7 +38,6 @@ import { mountInspector } from '@/testing/InspectorOverlay';
 import { mountHUD } from '@/ui/mount';
 import { mountLoader } from '@/ui/slots/loader';
 import type { Disposable } from '@/utils/Disposable';
-import { HUDLayer } from '@/view/hud';
 import { MainScene } from '@/view/scenes/MainScene';
 import { resizeObject } from '@/view/smart';
 
@@ -136,7 +135,6 @@ export async function compose({
 
   const hudDisposable: Disposable = mountHUD(hudHost, { stores, fsm, sound });
 
-  let hudLayer: HUDLayer | null = null;
   let inspectorDisposer: (() => void) | null = null;
   let inspectorChannel: InspectorChannel | null = null;
 
@@ -216,10 +214,6 @@ export async function compose({
           if (!inspectorOff) inspectorDisposer = mountInspector(testBridge, inspectorChannel);
         }
 
-        // 6) Pixi HUD disabled — using Preact HUD (BottomBar/BottomStrip in App.tsx) instead.
-        // hudLayer = new HUDLayer({ stores, fsm });
-        // scene.app.stage.addChild(hudLayer);
-
         stores.ui.setBootStage('ready');
         await fsm.transition('idle');
       } catch (err) {
@@ -232,8 +226,6 @@ export async function compose({
       inspectorDisposer = null;
       inspectorChannel?.dispose();
       inspectorChannel = null;
-      hudLayer?.dispose();
-      hudLayer = null;
       loaderDisposable.dispose();
       hudDisposable.dispose();
       sound.dispose();

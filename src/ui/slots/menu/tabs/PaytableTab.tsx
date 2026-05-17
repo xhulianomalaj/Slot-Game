@@ -23,6 +23,7 @@ export const PaytableTab = observer((): JSX.Element => {
         <Stat label="Platform max win" value={fmtCurrency(PAYTABLE.platformMaxWin, ui.currency)} />
         <Stat label="Reels" value={`${GAME.columns} × ${GAME.rows}`} />
       </div>
+      <p class="sp-pt-note">Multipliers apply to the line bet (total bet ÷ {PAYTABLE.lines} lines).</p>
       <table class="sp-pt-table" aria-label="Paytable">
         <thead>
           <tr class="sp-pt-row" data-head="1">

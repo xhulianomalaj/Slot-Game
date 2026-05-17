@@ -4,7 +4,7 @@
 
 A fully-featured browser-based slot game built from the ground up as a personal portfolio project. The game is currently **under active development** and will be publicly hosted in the future so anyone can play it directly in their browser — no download required.
 
-> **Status:** Ongoing — animation updates, sound effects, and bug fixes.
+> **Status:** Feature-complete — ongoing polish, payline tuning, and codebase maintenance.
 
 ---
 
@@ -88,7 +88,7 @@ src/
   flow/                 FSM + phase handlers. Owns all game timing.
   presenters/           State → view adapters (reels, background).
   view/                 Pixi scenes, symbol classes, smart positioning.
-  ui/                   Preact HUD — components, hooks, styles.
+  ui/                   Preact HUD — slots (header, menu, modals), shared components, hooks, styles.
   infrastructure/       Network, ticker, asset loader, analytics, SoundManager.
   config/               Grid config, symbol IDs, theme catalogue.
   testing/              Test bridge, inspector overlay, mock network.
@@ -121,6 +121,8 @@ raw-assets/             Source art. Compile with `pnpm run assets:pack`.
 - [x] Final art and symbol set
 - [x] Live hosting (public playable build)
 - [x] Mobile touch gesture support
+- [x] Payline geometry validation (±1-row adjacency constraint)
+- [x] Dead code removal (legacy rules overlay, unused Pixi HUD layer)
 
 
 ---
