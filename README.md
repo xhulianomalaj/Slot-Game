@@ -118,9 +118,9 @@ raw-assets/             Source art. Compile with `pnpm run assets:pack`.
 ## Roadmap
 
 - [x] Sound engine integration
-- [ ] Final art and symbol set
-- [ ] Live hosting (public playable build)
-- [ ] Mobile touch gesture support
+- [x] Final art and symbol set
+- [x] Live hosting (public playable build)
+- [x] Mobile touch gesture support
 
 
 ---

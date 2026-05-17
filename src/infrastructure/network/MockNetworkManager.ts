@@ -39,6 +39,7 @@ const LINE_COUNT = 20;
 // ─── Paylines (5-reel × 3-row, 20 lines) ─────────────────────────────────────
 // Each entry is [row-on-reel-0, row-on-reel-1, …, row-on-reel-4].
 // Row 0 = top, 1 = middle, 2 = bottom.
+// Rule: adjacent reels may differ by at most 1 row — no 2-row jumps.
 const PAYLINES: ReadonlyArray<readonly [number, number, number, number, number]> = [
   [1, 1, 1, 1, 1], //  1 — middle row straight
   [0, 0, 0, 0, 0], //  2 — top row straight
@@ -59,7 +60,7 @@ const PAYLINES: ReadonlyArray<readonly [number, number, number, number, number]>
   [2, 2, 1, 2, 2], // 17 — bottom dip centre
   [1, 1, 0, 1, 1], // 18 — mid peak up
   [1, 1, 2, 1, 1], // 19 — mid peak down
-  [0, 2, 1, 2, 0], // 20 — extreme zigzag
+  [0, 1, 2, 2, 1], // 20 — slide down (was extreme zigzag, violated ±1 rule)
 ];
 
 // ─── Reel strips ──────────────────────────────────────────────────────────────
