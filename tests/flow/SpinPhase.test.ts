@@ -41,7 +41,7 @@ describe('SpinPhase', () => {
     expect(stores.balance.balance).toBe(99);
     void startingBalance;
     expect(reels.startSpin).toHaveBeenCalledOnce();
-    expect(network.spin).toHaveBeenCalledWith({ bet: 1 });
+    expect(network.spin).toHaveBeenCalledWith({ bet: 1, isFreeSpins: false });
     expect(stopSpin.enter).toHaveBeenCalledOnce();
   });
 });
