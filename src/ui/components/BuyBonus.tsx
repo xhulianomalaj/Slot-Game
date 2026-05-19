@@ -23,7 +23,7 @@ export const BuyBonus = observer(function BuyBonus({ onClick }: { onClick?: () =
     const confirmed = await modals.confirm({
       icon: 'bonus',
       title: 'Buy Bonus',
-      description: `Buy 10 guaranteed Free Spins for ${formatted}?`,
+      description: `Buy 10 Free Spins for ${formatted}?`,
       confirm: 'Buy',
       cancel: 'Cancel',
     });

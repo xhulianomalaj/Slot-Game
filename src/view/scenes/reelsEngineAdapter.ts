@@ -126,6 +126,7 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
   /** Spawn floating $ labels for a single winline's cells. */
   function spawnLabelsForWinline(line: Winline, currency: string, scale: number): void {
     const share = line.amount / line.positions.length;
+    if (share <= 0) return; // skip labels for zero-value wins (e.g. cinematic reveal)
     for (const pos of line.positions) {
       // getCellBounds gives accurate reelSet-local coords without hardcoded constants.
       const b = reelSet.getCellBounds(pos.reel, pos.row);
