@@ -219,13 +219,15 @@ export class MockNetworkManager implements NetworkManager {
   }
 
   async spin(req: SpinRequest): Promise<SpinResponse> {
-    if (req.bet > this.balance) {
+    if (!req.isFreeSpins && req.bet > this.balance) {
       throw new Error('[MockServer] Insufficient balance');
     }
 
-    // Debit the bet immediately (server charges before resolving)
-    this.balance      = r2(this.balance - req.bet);
-    this.totalWagered = r2(this.totalWagered + req.bet);
+    // Debit the bet only for paid spins; free spins are already paid for.
+    if (!req.isFreeSpins) {
+      this.balance      = r2(this.balance - req.bet);
+      this.totalWagered = r2(this.totalWagered + req.bet);
+    }
     this.roundsPlayed++;
 
     // ── Build the grid from reel-strip stops ──────────────────────────────
@@ -285,8 +287,9 @@ export class MockNetworkManager implements NetworkManager {
   }
 
   async buyBonus(req: SpinRequest): Promise<SpinResponse> {
-    // Balance was already debited by the caller. Build a guaranteed
-    // 3-scatter grid by forcing scatter on reels 0, 2, 4.
+    // Debit the buy cost from the server's authoritative balance, then build
+    // a guaranteed 3-scatter grid by forcing scatter on reels 0, 2, 4.
+    this.balance = r2(this.balance - r2(req.bet * 80)); // 80 = BUY_BONUS_MULTIPLIER
     const grid: string[][] = this.reelStrips.map((strip, reel) => {
       if (reel === 0 || reel === 2 || reel === 4) {
         // Force scatter into row 1 (middle) for this reel

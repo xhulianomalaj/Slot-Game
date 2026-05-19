@@ -11,6 +11,8 @@ export type Grid = SymbolId[][]; // [reel][row]
 export interface SpinRequest {
   bet: number;
   sessionId?: string;
+  /** True during free spins — the server should not charge the bet. */
+  isFreeSpins?: boolean;
 }
 
 export interface Winline {

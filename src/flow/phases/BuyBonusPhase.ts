@@ -61,6 +61,12 @@ export class BuyBonusPhase implements Phase {
     try {
       const response = await ctx.network.buyBonus({ bet });
       data.setResponse(response);
+      // Apply the server's authoritative post-purchase balance immediately.
+      // SpinPhase will call data.clear() before the first free spin, so if we
+      // don't apply it here the scatter-trigger credit would be lost.
+      if (data.serverBalance !== null) {
+        balance.setBalance(data.serverBalance);
+      }
     } catch (err) {
       // Refund on failure
       balance.setBalance(balance.balance + cost);
