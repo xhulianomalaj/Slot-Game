@@ -50,6 +50,10 @@ export class WebSocketNetworkManager implements NetworkManager {
     return this.request<SpinResponse>('spin', req);
   }
 
+  buyBonus(req: SpinRequest): Promise<SpinResponse> {
+    return this.request<SpinResponse>('buy-bonus', req);
+  }
+
   dispose(): void {
     for (const [, p] of this.pending) {
       globalThis.clearTimeout(p.timer);
@@ -61,7 +65,7 @@ export class WebSocketNetworkManager implements NetworkManager {
     this.opening = null;
   }
 
-  private async request<T>(type: 'session' | 'spin', payload: unknown): Promise<T> {
+  private async request<T>(type: string, payload: unknown): Promise<T> {
     const ws = await this.connect();
     const id = `${type}-${this.nextId++}`;
     return new Promise<T>((resolve, reject) => {

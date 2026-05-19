@@ -1,7 +1,7 @@
 import { action, makeObservable, observable } from 'mobx';
 import type { JSX } from 'preact';
 
-export type ModalIcon = 'info' | 'warning' | 'error' | 'success' | { src: string };
+export type ModalIcon = 'info' | 'warning' | 'warn' | 'error' | 'success' | 'bonus' | { src: string };
 export type ModalButtonKind = 'primary' | 'secondary' | 'danger';
 
 export interface ModalButton<T = unknown> {

@@ -200,6 +200,12 @@ export class ScriptableMockNetwork implements NetworkManager {
     return response;
   }
 
+  async buyBonus(req: SpinRequest): Promise<SpinResponse> {
+    // For scripted tests, treat buyBonus as a spin with a guaranteed free-spins payload.
+    // Tests can queue a specific outcome via queueSpin() before triggering buy bonus.
+    return this.spin(req);
+  }
+
   async spin(req: SpinRequest): Promise<SpinResponse> {
     const entry: NetworkHistoryEntry = {
       kind: 'spin',

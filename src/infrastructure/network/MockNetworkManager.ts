@@ -149,6 +149,16 @@ function evaluateScatter(grid: string[][], totalBet: number): Winline | null {
   return { lineId: 0, symbolId: SCATTER, matchCount, amount, positions };
 }
 
+function countScatterPositions(grid: string[][]): Array<{ reel: number; row: number }> {
+  const positions: Array<{ reel: number; row: number }> = [];
+  for (let reel = 0; reel < grid.length; reel++) {
+    for (let row = 0; row < grid[reel]!.length; row++) {
+      if (grid[reel]![row] === SCATTER) positions.push({ reel, row });
+    }
+  }
+  return positions;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function r2(n: number): number { return Math.round(n * 100) / 100; }
 
@@ -242,6 +252,17 @@ export class MockNetworkManager implements NetworkManager {
     const scatterWl = evaluateScatter(grid, req.bet);
     if (scatterWl) winlines.push(scatterWl);
 
+    // ── Teasing reels: exactly 2 scatters = anticipation signal ──────────
+    const scatterPositions = countScatterPositions(grid);
+    const teasingReels: number[] = scatterPositions.length === 2
+      ? [0, 1, 2, 3, 4].filter((r) => !scatterPositions.some((p) => p.reel === r))
+      : [];
+
+    // ── Free spins award on scatter trigger (3→10, 4→15, 5→20) ──────────
+    const freeSpinsAwarded = scatterPositions.length >= 3
+      ? [0, 0, 0, 10, 15, 20][Math.min(scatterPositions.length, 5)] ?? 10
+      : 0;
+
     // ── Tally and credit ──────────────────────────────────────────────────
     const totalWin = r2(winlines.reduce((sum, wl) => sum + wl.amount, 0));
     this.balance   = r2(this.balance + totalWin);
@@ -252,10 +273,52 @@ export class MockNetworkManager implements NetworkManager {
 
     await wait(this.spinBase + jitter(120));
 
+    const resp: SpinResponse = {
+      grid,
+      totalWin,
+      winlines,
+      teasingReels,
+      balance: this.balance,
+    };
+    if (freeSpinsAwarded > 0) resp.freeSpinsAwarded = freeSpinsAwarded;
+    return resp;
+  }
+
+  async buyBonus(req: SpinRequest): Promise<SpinResponse> {
+    // Balance was already debited by the caller. Build a guaranteed
+    // 3-scatter grid by forcing scatter on reels 0, 2, 4.
+    const grid: string[][] = this.reelStrips.map((strip, reel) => {
+      if (reel === 0 || reel === 2 || reel === 4) {
+        // Force scatter into row 1 (middle) for this reel
+        return [
+          strip[Math.floor(Math.random() * strip.length)]!,
+          SCATTER,
+          strip[Math.floor(Math.random() * strip.length)]!,
+        ];
+      }
+      const stop = Math.floor(Math.random() * strip.length);
+      return [
+        strip[stop]!,
+        strip[(stop + 1) % strip.length]!,
+        strip[(stop + 2) % strip.length]!,
+      ];
+    });
+
+    const scatterWl = evaluateScatter(grid, req.bet);
+    const winlines: Winline[] = scatterWl ? [scatterWl] : [];
+    const totalWin = r2(winlines.reduce((s, wl) => s + wl.amount, 0));
+    this.balance  = r2(this.balance + totalWin);
+    this.totalWon = r2(this.totalWon + totalWin);
+    this.roundsPlayed++;
+
+    await wait(this.spinBase + jitter(120));
+
     return {
       grid,
       totalWin,
       winlines,
+      teasingReels: [],
+      freeSpinsAwarded: 10,
       balance: this.balance,
     };
   }

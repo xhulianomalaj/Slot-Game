@@ -55,6 +55,10 @@
 .sp-header__btn[data-off="1"] {
   color: rgba(231, 238, 240, 0.42);
 }
+.sp-header__btn:disabled {
+  color: rgba(231, 238, 240, 0.28);
+  cursor: default;
+}
 
 /* Hide info button on mobile — burger menu covers it */
 @media (max-width: 639px), (max-height: 540px) and (orientation: landscape) {

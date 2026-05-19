@@ -33,6 +33,8 @@ export class SoundManager {
   private disposeReactions: (() => void) | null = null;
   /** True when we explicitly suspended the context on tab hide. */
   private suspendedByVisibility = false;
+  /** True when we explicitly suspended the context because the menu opened on mobile. */
+  private suspendedByMenu = false;
 
   constructor(private readonly ui: UIStore) {}
 
@@ -115,6 +117,22 @@ export class SoundManager {
       (v) => { if (this.musicGain) this.musicGain.gain.value = v; },
     );
     this.disposeReactions = () => { r1(); r2(); r3(); };
+  }
+
+  /** Pause audio when the mobile menu opens. Mirrors onVisibilityChange. */
+  suspendForMenu(): void {
+    if (!this.ctx || !this.masterGain) return;
+    this.suspendedByMenu = true;
+    this.masterGain.gain.value = 0;
+    this.ctx.suspend().catch(() => undefined);
+  }
+
+  /** Resume audio when the mobile menu closes. */
+  resumeFromMenu(): void {
+    if (!this.ctx || !this.masterGain || !this.suspendedByMenu) return;
+    this.suspendedByMenu = false;
+    this.ctx.resume().catch(() => undefined);
+    this.masterGain.gain.value = this.ui.soundEnabled ? 1 : 0;
   }
 
   /** Start looping background music. Call once after init(). */

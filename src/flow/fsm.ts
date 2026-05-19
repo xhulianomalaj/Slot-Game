@@ -37,14 +37,18 @@ export class FSM {
       const currentPhaseName = this.current?.name ?? null;
       // Allow the transition only if:
       //  a) no spin is running yet, OR
-      //  b) we're inside WinShowPhase continuing the autoplay chain
-      const isInternalContinuation = currentPhaseName === 'winShow' || currentPhaseName === null;
+      //  b) we're inside WinShowPhase continuing the autoplay chain, or
+      //  c) the player just clicked Start for a free spins round
+      const isInternalContinuation =
+        currentPhaseName === 'winShow' ||
+        currentPhaseName === 'freeSpinsReady' ||
+        currentPhaseName === null;
       if (this._spinInFlight && !isInternalContinuation) {
         return;
       }
       this._spinInFlight = true;
     }
-    if (to === 'idle') {
+    if (to === 'idle' || to === 'freeSpinsReady') {
       this._spinInFlight = false;
     }
 

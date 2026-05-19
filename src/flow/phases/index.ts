@@ -8,11 +8,24 @@
 // Phases are unit-testable without a canvas — see tests/flow/SpinPhase.test.ts.
 
 import type { Phase } from '../Phase';
+import { BuyBonusPhase } from './BuyBonusPhase';
+import { FreeSpinsIntroPhase } from './FreeSpinsIntroPhase';
+import { FreeSpinsOutroPhase } from './FreeSpinsOutroPhase';
+import { FreeSpinsReadyPhase } from './FreeSpinsReadyPhase';
 import { IdlePhase } from './IdlePhase';
 import { SpinPhase } from './SpinPhase';
 import { StopSpinPhase } from './StopSpinPhase';
 import { WinShowPhase } from './WinShowPhase';
 
-export const PHASES: Phase[] = [new IdlePhase(), new SpinPhase(), new StopSpinPhase(), new WinShowPhase()];
+export const PHASES: Phase[] = [
+  new IdlePhase(),
+  new SpinPhase(),
+  new StopSpinPhase(),
+  new WinShowPhase(),
+  new FreeSpinsIntroPhase(),
+  new FreeSpinsReadyPhase(),
+  new FreeSpinsOutroPhase(),
+  new BuyBonusPhase(),
+];
 
-export { IdlePhase, SpinPhase, StopSpinPhase, WinShowPhase };
+export { BuyBonusPhase, FreeSpinsIntroPhase, FreeSpinsOutroPhase, FreeSpinsReadyPhase, IdlePhase, SpinPhase, StopSpinPhase, WinShowPhase };

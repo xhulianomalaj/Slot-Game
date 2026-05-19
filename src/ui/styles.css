@@ -164,6 +164,40 @@
   background: rgba(30, 22, 56, 0.95);
 }
 
+/* Free-spins counter pill — appears left of the ± stepper during a free-spins round. */
+.free-spins-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #c8a018 0%, #f0c832 60%, #c8a018 100%);
+  box-shadow: 0 0 12px rgba(240, 200, 50, 0.7), 0 2px 6px rgba(0,0,0,0.5);
+  line-height: 1;
+  animation: free-spins-pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.free-spins-pill__count {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a0c00;
+  letter-spacing: -0.5px;
+}
+.free-spins-pill__label {
+  font-size: 7px;
+  font-weight: 700;
+  color: #1a0c00;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: -1px;
+}
+@keyframes free-spins-pulse {
+  0%, 100% { box-shadow: 0 0 10px rgba(240, 200, 50, 0.6), 0 2px 6px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 22px rgba(240, 200, 50, 1.0), 0 2px 6px rgba(0,0,0,0.5); }
+}
+
 /* Legacy aliases — kept so old layout rules don't accidentally hit anything.
  * The old .hud-bottom / .bottom-col-* classes are no longer rendered. */
 .hud-bottom { display: none; }
@@ -1160,6 +1194,7 @@
 
     width: 100%;
     zoom: 1;
+    position: relative;   /* positioning context for the absolutely-placed pill */
 
     /* Strip the dark panel — controls float over the canvas */
     background: none;
@@ -1317,6 +1352,21 @@
   .kv__value { font-size: 13px; }
   .rb-paylines { grid-template-columns: 1fr 1fr; }
   .rb-legend { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); }
+
+  /* Free-spins pill — mirrors the buy-bonus on the opposite edge.
+   * buy-bonus anchors to the left at 8px (left padding);
+   * pill anchors to the right at 8px (right padding).
+   * Row-1 height = --spin-size (72px); padding-top = 8px;
+   * pill height = 38px → top = 8 + (72−38)/2 = 25px */
+  .bet-board .free-spins-pill {
+    position: absolute;
+    top: 25px;
+    right: 8px;
+    width: 38px;
+    height: 38px;
+    margin: 0;
+  }
+  .bet-board .free-spins-pill .free-spins-pill__count { font-size: 15px; }
 }
 
 /* MOBILE LANDSCAPE — phones rotated.
@@ -1482,6 +1532,20 @@
   .bet-board .kv__value { font-size: 13px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8); }
 
   .rb-paylines { grid-template-columns: repeat(3, 1fr); }
+
+  /* Free-spins pill — float directly above the Buy Bonus button.
+   * buy-bonus: bottom = (--hud-safe-bottom + 64px), height 52px
+   * → top of buy-bonus = (--hud-safe-bottom + 116px); add 8px gap = 124px.
+   * Horizontal: buy-bonus left=14px, width=52px → centre at 40px.
+   * Pill width=42px → left edge = 40px - 21px = 19px. */
+  .bet-board .free-spins-pill {
+    position: absolute;
+    bottom: calc(var(--hud-safe-bottom) + 124px);
+    left: 19px;
+    width: 38px;
+    height: 38px;
+  }
+  .bet-board .free-spins-pill .free-spins-pill__count { font-size: 15px; }
 }
 
 /* TABLET — 640..1023px. Breathable padding, all labels visible. */

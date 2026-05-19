@@ -44,6 +44,10 @@ export class HttpNetworkManager implements NetworkManager {
     return this.post<SpinResponse>('/spin', req);
   }
 
+  buyBonus(req: SpinRequest): Promise<SpinResponse> {
+    return this.post<SpinResponse>('/buy-bonus', req);
+  }
+
   private async post<T>(path: string, body: unknown): Promise<T> {
     const ctrl = new AbortController();
     const timer = globalThis.setTimeout(() => ctrl.abort(), this.timeoutMs);

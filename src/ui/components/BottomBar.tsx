@@ -30,6 +30,9 @@ export const BottomBar = observer(() => {
   const { balance, ui } = useStores();
   const t = useT();
   const canStep = !ui.spinning && !ui.isAutospinning;
+  // True during the entire free-spins sequence (awaiting start OR in-round).
+  // Only the spin/start button and the speed pill stay interactive.
+  const inFreeSpins = ui.isFreeSpins || ui.freeSpinsAwaitingStart;
 
   const hasWin = balance.lastWin > 0;
 
@@ -57,12 +60,18 @@ export const BottomBar = observer(() => {
 
       {/* CENTER — [± stacked] SPIN [Autospin] */}
       <div class="bet-board__center">
+        {ui.isFreeSpins && (
+          <div class="free-spins-pill" data-testid="free-spins-pill">
+            <span class="free-spins-pill__count">{ui.freeSpinsRemaining}</span>
+            <span class="free-spins-pill__label">FREE</span>
+          </div>
+        )}
         <div class="bet-board__stepper">
           <IconButton
             ariaLabel="Increase bet"
             testId="bet-plus"
             extraProps={{ 'data-pixi-label': 'bet:plus' }}
-            disabled={!canStep || balance.bet >= AVAILABLE_BETS[AVAILABLE_BETS.length - 1]!}
+            disabled={inFreeSpins || !canStep || balance.bet >= AVAILABLE_BETS[AVAILABLE_BETS.length - 1]!}
             onClick={() => { balance.resetLastWin(); balance.stepBet(1); }}
           >
             <IconPlus />
@@ -71,7 +80,7 @@ export const BottomBar = observer(() => {
             ariaLabel="Decrease bet"
             testId="bet-minus"
             extraProps={{ 'data-pixi-label': 'bet:minus' }}
-            disabled={!canStep || balance.bet <= 0.2}
+            disabled={inFreeSpins || !canStep || balance.bet <= 0.2}
             onClick={() => { balance.resetLastWin(); balance.stepBet(-1); }}
           >
             <IconMinus />
@@ -81,7 +90,7 @@ export const BottomBar = observer(() => {
         <IconButton
           ariaLabel={ui.isAutospinning ? t('hud.autospin.cancel') : t('hud.autospin.start')}
           active={ui.isAutospinning}
-          disabled={ui.spinning}
+          disabled={inFreeSpins || ui.spinning}
           testId="btn-autospin"
           extraProps={{ 'data-pixi-label': 'autoplay' }}
           onClick={() => (ui.isAutospinning ? ui.stopAutospin() : ui.startAutospin(10))}

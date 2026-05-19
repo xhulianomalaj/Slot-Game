@@ -11,6 +11,7 @@
 // Adding a service: append a token to src/container/tokens.ts, register
 // the factory below, then `container.get(Tokens.Whatever)` anywhere.
 
+import { reaction } from 'mobx';
 import { GAME } from '@/config/gameConfig';
 import { Container as DI, Tokens } from '@/container';
 import { FSM } from '@/flow/fsm';
@@ -137,6 +138,7 @@ export async function compose({
 
   let inspectorDisposer: (() => void) | null = null;
   let inspectorChannel: InspectorChannel | null = null;
+  let menuPauseDisposer: (() => void) | null = null;
 
   for (const phase of PHASES) fsm.register(phase);
 
@@ -199,6 +201,30 @@ export async function compose({
         // Late-bind the Pixi app on the bridge so clickPixi / pauseTicker work.
         testBridge?.attachApp(scene.app);
 
+        // On mobile, pause the Pixi/GSAP ticker while the menu is open —
+        // mirrors the automatic freeze the browser applies when the tab is hidden.
+        {
+          const mq = window.matchMedia(
+            '(max-width: 639px), (max-height: 540px) and (orientation: landscape)',
+          );
+          let pausedByMenu = false;
+          menuPauseDisposer = reaction(
+            () => stores.ui.menuOpen,
+            (open) => {
+              if (!mq.matches) return;
+              if (open && !pausedByMenu) {
+                pausedByMenu = true;
+                scene.app?.ticker.stop();
+                sound.suspendForMenu();
+              } else if (!open && pausedByMenu) {
+                pausedByMenu = false;
+                scene.app?.ticker.start();
+                sound.resumeFromMenu();
+              }
+            },
+          );
+        }
+
         // Mount the live inspector overlay so QA can poke the bridge with a
         // panel UI. Disabled by `?inspector=0` for tests that want a clean
         // canvas screenshot. Lives only when the bridge does — production
@@ -222,6 +248,8 @@ export async function compose({
       }
     },
     dispose() {
+      menuPauseDisposer?.();
+      menuPauseDisposer = null;
       inspectorDisposer?.();
       inspectorDisposer = null;
       inspectorChannel?.dispose();

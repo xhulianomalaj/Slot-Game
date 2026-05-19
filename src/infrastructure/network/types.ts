@@ -19,6 +19,11 @@ export interface NetworkManager {
   session(req: SessionRequest): Promise<SessionResponse>;
   /** Sends a spin and resolves with the resolved round (grid, winlines, balance). */
   spin(req: SpinRequest): Promise<SpinResponse>;
+  /**
+   * Purchases a bonus round. Deduct cost from balance before calling.
+   * Resolves with a guaranteed scatter-trigger SpinResponse (freeSpinsAwarded > 0).
+   */
+  buyBonus(req: SpinRequest): Promise<SpinResponse>;
   /** Optional teardown — close sockets, flush buffers, etc. */
   dispose?(): void;
 }

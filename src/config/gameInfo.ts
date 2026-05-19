@@ -25,7 +25,11 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Scatter symbol',
-    body: 'Scatters pay regardless of position on the reels — they do not need to be on a payline. Land 3 Scatters anywhere for 5× your total bet, 4 Scatters for 20×, or 5 Scatters for 100× your total bet. When 2 Scatters have landed, the remaining reels are highlighted to build anticipation.',
+    body: 'Scatters pay regardless of position on the reels — they do not need to be on a payline. Land 3 Scatters anywhere for 5× your total bet, 4 Scatters for 20×, or 5 Scatters for 100× your total bet. When 2 Scatters have landed, the remaining reels are highlighted to build anticipation. Landing 3 or more Scatters also triggers the Free Spins bonus (see below).',
+  },
+  {
+    title: 'Free Spins bonus',
+    body: 'Scatter triggers award Free Spins: 3 Scatters → 10 spins, 4 Scatters → 15 spins, 5 Scatters → 20 spins. During Free Spins your balance is never deducted — every spin is free. All wins accumulate in a Free Spins win total shown in the corner of the screen. Landing 3 or more Scatters during Free Spins re-triggers the feature and adds the same number of extra spins to your remaining count. When all spins are used, the total winnings are credited to your balance.',
   },
   {
     title: 'Spin speed',

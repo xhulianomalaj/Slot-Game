@@ -34,6 +34,11 @@ export interface SpinResponse {
   /** Optional: the round triggered a bonus game. */
   bonus?: { id: string; payload: unknown };
   /**
+   * Number of free spins awarded this round (scatter trigger or bonus buy).
+   * Absent / 0 means no free spins were triggered.
+   */
+  freeSpinsAwarded?: number;
+  /**
    * Authoritative POST-WIN balance — the wallet figure the player will see
    * once the round resolves, with the bet already debited and the win
    * already credited. The client does NOT add `totalWin` on top of this.

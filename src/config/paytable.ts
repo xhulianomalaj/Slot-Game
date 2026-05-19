@@ -38,7 +38,7 @@ export const PAYTABLE: PaytableConfig = {
     { id: 'plum',    label: 'Plum',              payouts: { 3: 8,   4: 30,   5: 100  } },
     { id: 'orange',  label: 'Orange',            payouts: { 3: 5,   4: 20,   5: 60   } },
     { id: 'lemon',   label: 'Lemon',             payouts: { 3: 5,   4: 15,   5: 50   } },
-    // Scatter pays × TOTAL BET (not line bet). Appears anywhere on reels.
-    { id: 'scatter', label: 'Scatter (any pos)', payouts: { 3: 5,   4: 20,   5: 100  } },
+    // Scatter pays × TOTAL BET (not line bet). Appears anywhere on reels. Also triggers Free Spins.
+    { id: 'scatter', label: 'Scatter (Free Spins)', payouts: { 3: 5,   4: 20,   5: 100  } },
   ],
 };

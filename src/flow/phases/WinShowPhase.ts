@@ -57,7 +57,35 @@ export class WinShowPhase implements Phase {
   }
 
   private advance(ctx: PhaseContext): void {
-    const { ui } = ctx.stores;
+    const { ui, data } = ctx.stores;
+
+    // ── Scatter triggered free spins (first time) ────────────────────────────
+    if (data.freeSpinsAwarded > 0 && !ui.isFreeSpins) {
+      // Cancel any active autospin — free spins take over and autospin must
+      // not resume after the round ends (player gets a fresh Start button).
+      if (ui.isAutospinning) ui.stopAutospin();
+      ui.startFreeSpins(data.freeSpinsAwarded);
+      void ctx.fsm.transition('freeSpinsIntro');
+      return;
+    }
+
+    // ── Inside a free spins round ─────────────────────────────────────────────
+    if (ui.isFreeSpins) {
+      if (data.totalWin > 0) ui.addFreeSpinsWin(data.totalWin);
+      // Re-trigger: more scatters during free spins → add extra spins silently
+      if (data.freeSpinsAwarded > 0) {
+        ui.addFreeSpins(data.freeSpinsAwarded);
+      }
+      ui.tickFreeSpins();
+      if (ui.isFreeSpins) {
+        void ctx.fsm.transition('spin');
+        return;
+      }
+      void ctx.fsm.transition('freeSpinsOutro');
+      return;
+    }
+
+    // ── Normal game flow ──────────────────────────────────────────────────────
     if (ui.isAutospinning) {
       ui.tickAutospin();
       if (ui.isAutospinning) {

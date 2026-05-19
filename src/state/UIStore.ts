@@ -69,6 +69,13 @@ export class UIStore {
   // Menu state
   menuOpen = false;
   menuTab: MenuTab = 'paytable';
+
+  // Free spins
+  freeSpinsRemaining = 0;
+  freeSpinsTotal = 0;
+  freeSpinsWinTotal = 0;
+  /** True after free spins are awarded but before the player clicks Start. */
+  freeSpinsAwaitingStart = false;
   // Session-derived
   sessionStartedAt = Date.now();
   totalStaked = 0;
@@ -110,6 +117,10 @@ export class UIStore {
       sessionLossLimit: observable,
       menuOpen: observable,
       menuTab: observable,
+      freeSpinsRemaining: observable,
+      freeSpinsTotal: observable,
+      freeSpinsWinTotal: observable,
+      freeSpinsAwaitingStart: observable,
       sessionStartedAt: observable,
       totalStaked: observable,
       totalWon: observable,
@@ -124,6 +135,7 @@ export class UIStore {
       autospinGeneration: observable,
       autospinStopping: observable,
       isAutospinning: computed,
+      isFreeSpins: computed,
       net: computed,
       setSpinning: action,
       setStopEnabled: action,
@@ -146,6 +158,12 @@ export class UIStore {
       openMenu: action,
       closeMenu: action,
       setMenuTab: action,
+      startFreeSpins: action,
+      tickFreeSpins: action,
+      addFreeSpins: action,
+      addFreeSpinsWin: action,
+      endFreeSpins: action,
+      setFreeSpinsAwaitingStart: action,
       startAutospin: action,
       stopAutospin: action,
       tickAutospin: action,
@@ -163,6 +181,9 @@ export class UIStore {
 
   get isAutospinning(): boolean {
     return this.autospinRemaining > 0;
+  }
+  get isFreeSpins(): boolean {
+    return this.freeSpinsRemaining > 0;
   }
   get net(): number {
     return this.totalWon - this.totalStaked;
@@ -244,6 +265,33 @@ export class UIStore {
   }
   setMenuTab(tab: MenuTab): void {
     this.menuTab = tab;
+  }
+
+  startFreeSpins(count: number): void {
+    this.freeSpinsTotal = count;
+    this.freeSpinsRemaining = count;
+    this.freeSpinsWinTotal = 0;
+    this.freeSpinsAwaitingStart = false;
+  }
+  tickFreeSpins(): void {
+    if (this.freeSpinsRemaining > 0) this.freeSpinsRemaining--;
+  }
+  /** Add extra spins (re-trigger) without resetting the win accumulator. */
+  addFreeSpins(count: number): void {
+    this.freeSpinsRemaining += count;
+    this.freeSpinsTotal += count;
+  }
+  addFreeSpinsWin(amount: number): void {
+    this.freeSpinsWinTotal += amount;
+  }
+  endFreeSpins(): void {
+    this.freeSpinsRemaining = 0;
+    this.freeSpinsTotal = 0;
+    this.freeSpinsWinTotal = 0;
+    this.freeSpinsAwaitingStart = false;
+  }
+  setFreeSpinsAwaitingStart(v: boolean): void {
+    this.freeSpinsAwaitingStart = v;
   }
 
   startAutospin(count: number): void {

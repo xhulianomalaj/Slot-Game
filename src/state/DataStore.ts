@@ -11,6 +11,8 @@ export class DataStore {
   teasingReels: number[] = [];
   /** Server's authoritative post-win balance — applied only when win reveal starts. */
   serverBalance: number | null = null;
+  /** Free spins awarded this round (0 = none). */
+  freeSpinsAwarded = 0;
 
   constructor() {
     makeObservable(this, {
@@ -19,6 +21,7 @@ export class DataStore {
       totalWin: observable,
       teasingReels: observable,
       serverBalance: observable,
+      freeSpinsAwarded: observable,
       setResponse: action,
       clear: action,
     });
@@ -30,6 +33,7 @@ export class DataStore {
     this.totalWin = response.totalWin;
     this.teasingReels = response.teasingReels ?? [];
     this.serverBalance = response.balance;
+    this.freeSpinsAwarded = response.freeSpinsAwarded ?? 0;
   }
 
   clear(): void {
@@ -37,5 +41,6 @@ export class DataStore {
     this.totalWin = 0;
     this.teasingReels = [];
     this.serverBalance = null;
+    this.freeSpinsAwarded = 0;
   }
 }

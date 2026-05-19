@@ -51,7 +51,13 @@ export const HeaderSlot = observer((): JSX.Element | null => {
       >
         {soundOn ? <SoundOnIcon /> : <SoundOffIcon />}
       </button>
-      <button type="button" class="sp-header__btn" aria-label="Game info" onClick={() => ui.openMenu('settings')}>
+      <button
+        type="button"
+        class="sp-header__btn"
+        aria-label="Game info"
+        disabled={ui.spinning}
+        onClick={() => ui.openMenu('settings')}
+      >
         <InfoIcon />
       </button>
       <time class="sp-header__clock" dateTime={new Date().toISOString()}>

@@ -1,4 +1,4 @@
-import { observer } from '@/ui/hooks/useObserver';
+﻿import { observer } from '@/ui/hooks/useObserver';
 import { useFSM, useSound, useStores } from '@/ui/hooks/useStores';
 import { IconPlay, IconStop } from './Icons';
 
@@ -7,15 +7,57 @@ export const SpinButton = observer(() => {
   const fsm = useFSM();
   const sound = useSound();
 
+  // ── Free spins "Start" mode ──────────────────────────────────────────────
+  // The player must click once to begin the free-spins round.
+  if (ui.freeSpinsAwaitingStart) {
+    return (
+      <button
+        type="button"
+        aria-label="Start free spins"
+        class="spin"
+        onClick={() => {
+          sound.play('click');
+          ui.setFreeSpinsAwaitingStart(false);
+          void fsm.transition('spin');
+        }}
+        data-testid="spin"
+        data-pixi-label="spin"
+        data-state="start"
+      >
+        <IconPlay />
+        <span class="spin-hint">Start</span>
+      </button>
+    );
+  }
+
+  // ── Free spins in-progress: fully locked ────────────────────────────────
+  // Button stays disabled for the entire free-spins round; speed pill
+  // is the only way to accelerate.
+  if (ui.isFreeSpins) {
+    return (
+      <button
+        type="button"
+        aria-label="Free spins in progress"
+        class="spin"
+        disabled
+        data-testid="spin"
+        data-pixi-label="spin"
+        data-state="spin"
+      >
+        <IconPlay />
+        <span class="spin-hint">Spin</span>
+      </button>
+    );
+  }
+
+  // ── Normal play ──────────────────────────────────────────────────────────
   const onClick = () => {
     if (ui.isAutospinning && ui.spinning) {
-      // Cancel autoplay while a spin round is in progress.
       ui.stopAutospin();
       return;
     }
     if (ui.spinning) {
       if (ui.stopEnabled) {
-        // Disable button immediately - win animations must play out fully.
         ui.setStopEnabled(false);
         fsm.skip();
       }
@@ -26,17 +68,12 @@ export const SpinButton = observer(() => {
     }
   };
 
-  // Disabled when:
-  //  • not spinning and spin isn’t allowed (balance / FSM guard)
-  //  • stop was clicked — waiting for win animations to finish
-  //  • autoplay is in the process of stopping
   const disabled =
     (!ui.spinning && !ui.spinEnabled && !ui.isAutospinning) ||
     ui.autospinStopping ||
     (ui.spinning && !ui.stopEnabled && !ui.isAutospinning) ||
     (!ui.spinning && !ui.isAutospinning && balance.balance < balance.bet);
 
-  // Show stop icon only while a spin is in progress (autoplay or manual stop-enabled).
   const isStopState = ui.spinning && (ui.isAutospinning || ui.stopEnabled);
 
   return (

@@ -12,12 +12,15 @@ export class SpinPhase implements Phase {
     if (ui.isAutospinning) {
       ui.beginAutospinRound();
     }
-    try {
-      ctx.stores.balance.debitBet(); // optimistic; server balance in response is authoritative
-    } catch (err) {
-      console.warn('[SpinPhase] insufficient balance, aborting spin', err);
-      await ctx.fsm.transition('idle');
-      return;
+    // Free spins don't debit — the round is already paid for by the trigger.
+    if (!ui.isFreeSpins) {
+      try {
+        ctx.stores.balance.debitBet(); // optimistic; server balance in response is authoritative
+      } catch (err) {
+        console.warn('[SpinPhase] insufficient balance, aborting spin', err);
+        await ctx.fsm.transition('idle');
+        return;
+      }
     }
     ctx.stores.ui.recordStake(ctx.stores.balance.bet);
     ctx.stores.ui.setSpinning(true);
