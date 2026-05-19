@@ -307,19 +307,17 @@ export class MockNetworkManager implements NetworkManager {
       ];
     });
 
-    const scatterWl = evaluateScatter(grid, req.bet);
-    const winlines: Winline[] = scatterWl ? [scatterWl] : [];
-    const totalWin = r2(winlines.reduce((s, wl) => s + wl.amount, 0));
-    this.balance  = r2(this.balance + totalWin);
-    this.totalWon = r2(this.totalWon + totalWin);
+    // No scatter payout on a bonus buy — the cost IS the price for the free
+    // spins. Crediting a scatter win on top would cause a net deduction smaller
+    // than the advertised cost and make the balance visibly jump back up.
     this.roundsPlayed++;
 
     await wait(this.spinBase + jitter(120));
 
     return {
       grid,
-      totalWin,
-      winlines,
+      totalWin: 0,
+      winlines: [],
       teasingReels: [],
       freeSpinsAwarded: 10,
       balance: this.balance,
