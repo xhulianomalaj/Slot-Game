@@ -8,6 +8,20 @@ A fully-featured browser-based slot game built from the ground up as a personal 
 
 ---
 
+## Repository Branches
+
+| Branch | Purpose | Network layer |
+|--------|---------|---------------|
+| `main` | Production / live deployment (Vercel) | Built-in mock server — no backend required |
+| `backend` | Active development — real Python engine | FastAPI backend at `http://localhost:8000` |
+
+**You are on the `backend` branch.**
+This branch connects the game to a real, mathematically correct Python game engine instead of the built-in mock server. The Python backend repository will be made public in a future release.
+
+> To switch to the live deployment version, check out `main`.
+
+---
+
 ## About the Project
 
 This is a client-side slot game engine built with modern web technologies. It demonstrates production-grade architecture patterns used in real iGaming products, including a fully reactive UI, a finite-state-machine-driven game loop, a scriptable mock network layer for testing, and adaptive layout across every screen size from mobile portrait to 4K desktop.
@@ -51,17 +65,32 @@ The project is intentionally built to the standard of a commercial iGaming clien
 
 ## Getting Started
 
+This branch requires the Python backend to be running before starting the frontend.
+
+**Step 1 — Start the Python backend**
+
+```powershell
+cd slot-backend
+python -m venv .venv
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+```
+
+**Step 2 — Start the frontend**
+
 ```bash
-# 1. Install dependencies
+# Install dependencies (first time only)
 pnpm install
 
-# 2. Start the dev server
+# Start the dev server — talks to the Python backend at localhost:8000
 pnpm dev                  # http://localhost:5173
 
-# 3. Build for production
+# Build for production
 pnpm build
 
-# 4. Preview the production build locally
+# Preview the production build locally
 pnpm preview
 ```
 
@@ -75,7 +104,7 @@ pnpm test:e2e             # End-to-end behavior scenarios (Playwright)
 pnpm test:screenshots     # 16-viewport screenshot matrix (Playwright)
 ```
 
-> The game runs entirely in the browser with a built-in mock network — no backend server is needed.
+> The network adapter is controlled by `.env.local` (not committed). On this branch it is set to `VITE_NETWORK=http` pointing at `http://localhost:8000/api`.
 
 ---
 
