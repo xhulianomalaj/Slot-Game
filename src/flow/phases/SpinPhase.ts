@@ -45,7 +45,11 @@ export class SpinPhase implements Phase {
       ctx.sound.play('spinning', { loop: true });
     }
 
-    const response = await ctx.network.spin({ bet: ctx.stores.balance.bet, isFreeSpins: ui.isFreeSpins });
+    const response = await ctx.network.spin({
+      bet: ctx.stores.balance.bet,
+      isFreeSpins: ui.isFreeSpins,
+      ...(ctx.stores.ui.sessionId ? { sessionId: ctx.stores.ui.sessionId } : {}),
+    });
     ctx.stores.data.setResponse(response);
     // spinning sound is stopped in StopSpinPhase after reels fully land.
 

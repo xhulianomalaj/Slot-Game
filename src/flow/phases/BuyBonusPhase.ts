@@ -59,7 +59,10 @@ export class BuyBonusPhase implements Phase {
     ui.setSpinning(true);
 
     try {
-      const response = await ctx.network.buyBonus({ bet });
+      const response = await ctx.network.buyBonus({
+        bet,
+        ...(ui.sessionId ? { sessionId: ui.sessionId } : {}),
+      });
       data.setResponse(response);
       // Apply the server's authoritative post-purchase balance immediately.
       // SpinPhase will call data.clear() before the first free spin, so if we
