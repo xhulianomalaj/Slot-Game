@@ -8,6 +8,18 @@ A fully-featured browser-based slot game built from the ground up as a personal 
 
 ---
 
+## Repository Branches
+
+| Branch | Purpose | Network layer |
+|--------|---------|---------------|
+| `main` | Production / live deployment (Vercel) | Built-in mock server — no backend required |
+| `backend` | Active development — real Python engine | FastAPI backend at `http://localhost:8000` |
+
+**You are on the `main` branch.**
+This is the live deployment branch. It runs entirely in the browser using a built-in mock server — no backend is required. The `backend` branch connects the game to a real, mathematically correct Python game engine. The Python backend repository will be made public in a future release.
+
+---
+
 ## About the Project
 
 This is a client-side slot game engine built with modern web technologies. It demonstrates production-grade architecture patterns used in real iGaming products, including a fully reactive UI, a finite-state-machine-driven game loop, a scriptable mock network layer for testing, and adaptive layout across every screen size from mobile portrait to 4K desktop.
