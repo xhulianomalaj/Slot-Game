@@ -19,6 +19,7 @@ export const PaytableTab = observer((): JSX.Element => {
     <div>
       <div class="sp-pt-stats">
         <Stat label="Lines" value={PAYTABLE.lines} />
+        <Stat label="RTP" value={`${(PAYTABLE.rtp * 100).toFixed(2)}%`} />
         <Stat label="Theoretical max win" value={`${PAYTABLE.theoreticalMaxWin.toLocaleString()}× bet`} />
         <Stat label="Platform max win" value={fmtCurrency(PAYTABLE.platformMaxWin, ui.currency)} />
         <Stat label="Reels" value={`${GAME.columns} × ${GAME.rows}`} />
