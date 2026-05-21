@@ -27,9 +27,16 @@ export class WinShowPhase implements Phase {
     const { winlines, totalWin, serverBalance } = ctx.stores.data;
     const speedScale = WIN_SCALE[ctx.stores.ui.speed];
     const msPerWin = MS_PER_WIN * speedScale;
-    const hold = winlines.length > 0 && totalWin > 0
+
+    // A zero-amount scatter winline still needs a glow animation.
+    const hasMoney = winlines.length > 0 && totalWin > 0;
+    const hasAnim  = winlines.length > 0;
+
+    const hold = hasMoney
       ? Math.max(WIN_HOLD_MS * speedScale, winlines.length * msPerWin)
-      : AUTOSPIN_DELAY_MS;
+      : hasAnim
+        ? WIN_HOLD_MS * speedScale   // hold long enough for scatter glow
+        : AUTOSPIN_DELAY_MS;
 
     // Apply the server's authoritative post-win balance now — reels have
     // landed, so the HUD update is in sync with the win reveal.
@@ -37,13 +44,18 @@ export class WinShowPhase implements Phase {
       ctx.stores.balance.setBalance(serverBalance);
     }
 
-    if (winlines.length > 0 && totalWin > 0) {
+    if (hasAnim) {
+      // Show symbol highlights for every winline, including zero-amount
+      // scatter winlines (trigger + re-trigger both need the glow).
       ctx.reels.showWin(winlines, ctx.stores.ui.currency);
+      ctx.sound.play('win');
+    }
+
+    if (hasMoney) {
       ctx.stores.balance.setLastWin(totalWin);
       ctx.stores.ui.recordWin(totalWin);
-      // Play win sound once per winning line, staggered to match each
-      // line's animation window (MS_PER_WIN apart).
-      ctx.sound.play('win');
+      // Stagger one win sound per paying line, matching each line's
+      // animation window (MS_PER_WIN apart).
       for (let i = 1; i < winlines.length; i++) {
         this.winSoundTimers.push(
           ctx.ticker.schedule(i * msPerWin, () => ctx.sound.play('win')),
