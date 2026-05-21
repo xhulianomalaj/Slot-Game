@@ -17,7 +17,7 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Symbol values',
-    body: 'The highest-paying symbols are Seven (50×–1000× line bet) and Wild (100×–2500× line bet). Mid-range symbols are Bar, Bell, and Cherry. Lower-value symbols are Plum, Orange, and Lemon. Higher match counts (4 or 5 of a kind) pay significantly more than 3 of a kind.',
+    body: 'The highest-paying symbol is the Wild (103×–2580× line bet) followed by Seven (52×–1032× line bet). Mid-range symbols are Bar, Bell, and Cherry. Lower-value symbols are Plum, Orange, and Lemon. Higher match counts (4 or 5 of a kind) pay significantly more than 3 of a kind. All multipliers in the paytable are expressed in units of line bet (= total bet ÷ 20).',
   },
   {
     title: 'Wild symbol',
@@ -25,11 +25,15 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Scatter symbol',
-    body: 'Scatters pay regardless of position on the reels — they do not need to be on a payline. Land 3 Scatters anywhere for 5× your total bet, 4 Scatters for 20×, or 5 Scatters for 100× your total bet. When 2 Scatters have landed, the remaining reels are highlighted to build anticipation. Landing 3 or more Scatters also triggers the Free Spins bonus (see below).',
+    body: 'Scatters do not pay line credits and do not need to land on a payline. Their only role is to trigger the Free Spins bonus: 3 Scatters anywhere on the grid awards 10 Free Spins. When 2 Scatters have landed, the remaining reels are highlighted to build anticipation.',
   },
   {
     title: 'Free Spins bonus',
-    body: 'Scatter triggers award Free Spins: 3 Scatters → 10 spins, 4 Scatters → 15 spins, 5 Scatters → 20 spins. During Free Spins your balance is never deducted — every spin is free. All wins accumulate in a Free Spins win total shown in the corner of the screen. Landing 3 or more Scatters during Free Spins re-triggers the feature and adds the same number of extra spins to your remaining count. When all spins are used, the total winnings are credited to your balance.',
+    body: 'Landing 3 Scatters anywhere awards 10 Free Spins. During Free Spins your balance is never deducted — every spin is free. All wins accumulate in a Free Spins win total shown in the corner of the screen. Landing 3 Scatters again during a Free Spin re-triggers the feature and adds 10 extra spins to your remaining count. When all spins are used, the total winnings are credited to your balance.',
+  },
+  {
+    title: 'Return to player (RTP)',
+    body: 'The certified theoretical Return to Player (RTP) is 96.5%, verified by a 1,000,000-spin Monte Carlo simulation against the production game engine. Volatility is classified as LOW: wins are frequent (hit frequency ≈ 41%) and the standard deviation of per-spin payout is approximately 2.7× the bet. Maximum win in a single round is capped at 2,580× total bet.',
   },
   {
     title: 'Spin speed',

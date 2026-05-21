@@ -18,23 +18,30 @@ import type { SessionRequest, SessionResponse, SpinRequest, SpinResponse, Winlin
 import type { NetworkManager } from './types';
 
 // ─── Paytable ─────────────────────────────────────────────────────────────────
-// Multipliers × line bet. Keep in sync with src/config/paytable.ts.
-// Scatter multiplies × total bet (not line bet) — evaluated separately.
+// Multipliers × line bet. Mirrors the production Python engine paytable
+// (slot-backend/engine/paytable.py) — certified RTP ≈ 96.5%.
+// Scatter pays no line credits; it only triggers Free Spins.
 const PAYOUTS: Record<string, Partial<Record<3 | 4 | 5, number>>> = {
-  seven:   { 3: 50,  4: 200, 5: 1000 },
-  wild:    { 3: 100, 4: 500, 5: 2500 },
-  bar:     { 3: 25,  4: 100, 5: 500  },
-  bell:    { 3: 15,  4: 60,  5: 250  },
-  cherry:  { 3: 10,  4: 40,  5: 150  },
-  plum:    { 3: 8,   4: 30,  5: 100  },
-  orange:  { 3: 5,   4: 20,  5: 60   },
-  lemon:   { 3: 5,   4: 15,  5: 50   },
-  scatter: { 3: 5,   4: 20,  5: 100  },
+  wild:    { 3: 103, 4: 516, 5: 2580 },
+  seven:   { 3: 52,  4: 218, 5: 1032 },
+  bar:     { 3: 26,  4: 103, 5: 516  },
+  bell:    { 3: 17,  4: 65,  5: 258  },
+  cherry:  { 3: 10,  4: 44,  5: 159  },
+  plum:    { 3: 9,   4: 30,  5: 103  },
+  orange:  { 3: 5,   4: 21,  5: 65   },
+  lemon:   { 3: 5,   4: 16,  5: 52   },
 };
 
 const WILD    = 'wild';
 const SCATTER = 'scatter';
 const LINE_COUNT = 20;
+
+// Free-spins mechanics — mirror engine/evaluator.py.
+// Exactly 3 scatters trigger 10 free spins; 4th/5th scatter is replaced with
+// CHERRY in-place so the response never shows more than 3 scatter symbols.
+const FREE_SPINS_COUNT = 10;
+const SCATTER_TRIGGER  = 3;
+const SCATTER_FILL     = 'cherry';
 
 // ─── Paylines (5-reel × 3-row, 20 lines) ─────────────────────────────────────
 // Each entry is [row-on-reel-0, row-on-reel-1, …, row-on-reel-4].
@@ -134,22 +141,7 @@ function evaluatePayline(
   return { lineId, symbolId: base, matchCount, amount, positions };
 }
 
-function evaluateScatter(grid: string[][], totalBet: number): Winline | null {
-  const positions: Array<{ reel: number; row: number }> = [];
-  for (let reel = 0; reel < grid.length; reel++) {
-    for (let row = 0; row < grid[reel]!.length; row++) {
-      if (grid[reel]![row] === SCATTER) positions.push({ reel, row });
-    }
-  }
-  if (positions.length < 3) return null;
-
-  const matchCount = Math.min(positions.length, 5) as 3 | 4 | 5;
-  const multiplier = PAYOUTS[SCATTER]?.[matchCount] ?? 0;
-  const amount = r2(totalBet * multiplier);
-  return { lineId: 0, symbolId: SCATTER, matchCount, amount, positions };
-}
-
-function countScatterPositions(grid: string[][]): Array<{ reel: number; row: number }> {
+function findScatterPositions(grid: string[][]): Array<{ reel: number; row: number }> {
   const positions: Array<{ reel: number; row: number }> = [];
   for (let reel = 0; reel < grid.length; reel++) {
     for (let row = 0; row < grid[reel]!.length; row++) {
@@ -157,6 +149,20 @@ function countScatterPositions(grid: string[][]): Array<{ reel: number; row: num
     }
   }
   return positions;
+}
+
+/**
+ * Cap visible scatters at SCATTER_TRIGGER. Any extras are replaced in-place
+ * with SCATTER_FILL (cherry) so the response never shows more than 3 scatters.
+ * Returns the (possibly trimmed) list of scatter positions.
+ */
+function capScatters(grid: string[][]): Array<{ reel: number; row: number }> {
+  const positions = findScatterPositions(grid);
+  for (let i = SCATTER_TRIGGER; i < positions.length; i++) {
+    const { reel, row } = positions[i]!;
+    grid[reel]![row] = SCATTER_FILL;
+  }
+  return positions.slice(0, SCATTER_TRIGGER);
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -241,29 +247,40 @@ export class MockNetworkManager implements NetworkManager {
       ];
     });
 
-    // ── Evaluate all paylines ─────────────────────────────────────────────
-    const lineBet  = r2(req.bet / LINE_COUNT);
-    const winlines: Winline[] = [];
+    // ── Cap scatters at 3, then evaluate ──────────────────────────────────
+    // The engine guarantees the response never carries 4 or 5 scatters — any
+    // extras are replaced with cherry in-place. Trigger fires at exactly 3.
+    const scatterPositions = capScatters(grid);
+    const scatterCount = scatterPositions.length;
 
-    for (let i = 0; i < PAYLINES.length; i++) {
-      const wl = evaluatePayline(grid, PAYLINES[i]!, lineBet, i + 1);
-      if (wl) winlines.push(wl);
+    const winlines: Winline[] = [];
+    let freeSpinsAwarded = 0;
+
+    if (scatterCount >= SCATTER_TRIGGER) {
+      // ── Scatter trigger: award free spins, discard all payline wins ────
+      // A zero-amount scatter winline is returned so the frontend can glow
+      // the scatter symbols without showing a monetary value.
+      winlines.push({
+        lineId: 0,
+        symbolId: SCATTER,
+        matchCount: scatterCount as 3,
+        amount: 0,
+        positions: scatterPositions,
+      });
+      freeSpinsAwarded = FREE_SPINS_COUNT;
+    } else {
+      // ── No trigger: evaluate paylines normally ────────────────────────
+      const lineBet = r2(req.bet / LINE_COUNT);
+      for (let i = 0; i < PAYLINES.length; i++) {
+        const wl = evaluatePayline(grid, PAYLINES[i]!, lineBet, i + 1);
+        if (wl) winlines.push(wl);
+      }
     }
 
-    // ── Scatter (pays total bet × multiplier, not line bet) ───────────────
-    const scatterWl = evaluateScatter(grid, req.bet);
-    if (scatterWl) winlines.push(scatterWl);
-
     // ── Teasing reels: exactly 2 scatters = anticipation signal ──────────
-    const scatterPositions = countScatterPositions(grid);
-    const teasingReels: number[] = scatterPositions.length === 2
+    const teasingReels: number[] = scatterCount === 2
       ? [0, 1, 2, 3, 4].filter((r) => !scatterPositions.some((p) => p.reel === r))
       : [];
-
-    // ── Free spins award on scatter trigger (3→10, 4→15, 5→20) ──────────
-    const freeSpinsAwarded = scatterPositions.length >= 3
-      ? [0, 0, 0, 10, 15, 20][Math.min(scatterPositions.length, 5)] ?? 10
-      : 0;
 
     // ── Tally and credit ──────────────────────────────────────────────────
     const totalWin = r2(winlines.reduce((sum, wl) => sum + wl.amount, 0));
