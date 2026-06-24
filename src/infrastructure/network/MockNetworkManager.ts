@@ -74,42 +74,22 @@ const PAYLINES: ReadonlyArray<readonly [number, number, number, number, number]>
   [0, 1, 2, 2, 1], // 20 — slide down (was extreme zigzag, violated ±1 rule)
 ];
 
-// ─── Reel strips ──────────────────────────────────────────────────────────────
-// One strip per reel. Each symbol's count determines its stop frequency.
-// Strips are shuffled once per instance (session), then fixed — matching
-// how a real RGS freezes its reelset per game version.
-//
-// LDW tune: 33 stops/reel, ONE scatter each (free-spin trigger stays ~1 in 152),
-// and 1-2 wilds each so small wins land often (~41% hit frequency). The tiny
-// low-symbol 3x payouts (see PAYOUTS) make most of those wins sub-bet, giving
-// MEDIUM volatility (sigma/bet ~4.1) at ~97.0% RTP.
-const STRIP_WEIGHTS: ReadonlyArray<Record<string, number>> = [
-  // Reel 1 (33 stops, 1 scatter, 1 wild)
-  { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
-  // Reel 2 (33 stops, 1 scatter, 2 wilds)
-  { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
-  // Reel 3 — middle (33 stops, 1 scatter, 1 wild)
-  { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
-  // Reel 4 (33 stops, 1 scatter, 2 wilds)
-  { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
-  // Reel 5 — fewest premiums, hardest to complete (33 stops, 1 scatter, 1 wild)
-  { cherry: 8, lemon: 7, orange: 5, plum: 4, bell: 3, bar: 3, seven: 1, wild: 1, scatter: 1 },
+// ─── Reel strips (certified fixed reelset) ────────────────────────────────────
+// The reel ORDER is FIXED and certified — it is NOT reshuffled per session — so
+// the RTP is a single deterministic number: 96.98% (exact). Each strip is 33
+// stops with exactly 1 scatter and 1–2 wilds; the symbol composition matches the
+// backend exactly. This array MUST stay byte-identical to the backend's
+// REEL_STRIPS (slot-backend/engine/reel_strips.py) so the mock and the server
+// evaluate the same reels. The tiny low-symbol 3x payouts (see PAYOUTS) keep
+// ~54% of wins sub-bet (losses-disguised-as-wins); hit frequency ~42%, MEDIUM
+// volatility (sigma/bet ~4.3).
+const REEL_STRIPS: readonly (readonly string[])[] = [
+  ['lemon', 'bar', 'orange', 'bell', 'seven', 'seven', 'bell', 'cherry', 'lemon', 'plum', 'scatter', 'orange', 'lemon', 'bar', 'cherry', 'wild', 'cherry', 'cherry', 'bell', 'orange', 'lemon', 'lemon', 'plum', 'bar', 'plum', 'cherry', 'bell', 'orange', 'orange', 'lemon', 'plum', 'cherry', 'cherry'],
+  ['lemon', 'bell', 'bell', 'bell', 'cherry', 'orange', 'bar', 'plum', 'orange', 'lemon', 'cherry', 'orange', 'scatter', 'orange', 'seven', 'lemon', 'plum', 'bar', 'cherry', 'seven', 'bar', 'lemon', 'wild', 'lemon', 'plum', 'bell', 'cherry', 'lemon', 'orange', 'plum', 'wild', 'cherry', 'cherry'],
+  ['cherry', 'cherry', 'bar', 'orange', 'bell', 'orange', 'lemon', 'plum', 'orange', 'bell', 'plum', 'bell', 'lemon', 'cherry', 'plum', 'bar', 'bell', 'lemon', 'lemon', 'cherry', 'seven', 'cherry', 'lemon', 'bar', 'lemon', 'cherry', 'plum', 'scatter', 'wild', 'seven', 'orange', 'cherry', 'orange'],
+  ['bar', 'plum', 'orange', 'plum', 'lemon', 'orange', 'lemon', 'seven', 'cherry', 'bell', 'wild', 'bell', 'orange', 'bar', 'lemon', 'seven', 'lemon', 'cherry', 'bar', 'cherry', 'scatter', 'lemon', 'cherry', 'bell', 'plum', 'orange', 'plum', 'wild', 'cherry', 'bell', 'cherry', 'orange', 'lemon'],
+  ['cherry', 'plum', 'scatter', 'plum', 'orange', 'orange', 'cherry', 'bar', 'seven', 'bar', 'wild', 'cherry', 'cherry', 'orange', 'lemon', 'cherry', 'lemon', 'lemon', 'cherry', 'lemon', 'bell', 'bell', 'bell', 'orange', 'orange', 'lemon', 'cherry', 'plum', 'lemon', 'bar', 'plum', 'lemon', 'cherry'],
 ];
-
-function buildStrip(weights: Record<string, number>): string[] {
-  const strip: string[] = [];
-  for (const [sym, count] of Object.entries(weights)) {
-    for (let i = 0; i < count; i++) strip.push(sym);
-  }
-  // Fisher-Yates shuffle — uniform distribution across stop positions
-  for (let i = strip.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const tmp = strip[i]!;
-    strip[i] = strip[j]!;
-    strip[j] = tmp;
-  }
-  return strip;
-}
 
 // ─── Win evaluation ───────────────────────────────────────────────────────────
 function evaluatePayline(
@@ -237,10 +217,10 @@ export class MockNetworkManager implements NetworkManager {
     this.spinBase    = opts.latency?.spin    ?? 480;
     this.sessionBase = opts.latency?.session ?? 650;
 
-    // Build one strip per reel, cycling STRIP_WEIGHTS if columns > 5
+    // Use the fixed certified reelset (fresh copies), cycling if columns > 5
     this.reelStrips = Array.from(
       { length: opts.columns },
-      (_, i) => buildStrip(STRIP_WEIGHTS[i % STRIP_WEIGHTS.length]!),
+      (_, i) => [...REEL_STRIPS[i % REEL_STRIPS.length]!],
     );
   }
 
