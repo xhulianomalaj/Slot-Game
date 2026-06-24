@@ -27,24 +27,24 @@ export interface PaytableConfig {
 
 export const PAYTABLE: PaytableConfig = {
   lines: '20',
-  // Certified ~96.9% by 5M-spin Monte Carlo against the production engine
-  // (per-session reel shuffle gives ~±0.1% spread; see slot-backend/MATH_MODEL.md).
-  rtp: 0.969,
-  // Realistic max win. The paytable's combinatorial ceiling is 2580× total bet
-  // (all 15 cells WILD → 20 lines × WILD 5x), but it is UNREACHABLE: reels 0/2/4
-  // carry only one WILD each, so a 3-cell window can never show three wilds.
-  // Observed ceiling across multi-million-spin certification runs is ~175–220×.
-  theoreticalMaxWin: 220,
+  // "POPULAR-SLOT" LDW profile: RTP ~97.0% (exact-enumeration tuned), hit
+  // frequency ~41% and sigma/bet ~4.1 (MEDIUM). Low symbols pay tiny 3-of-a-kinds
+  // so most wins are sub-bet ("losses disguised as wins"); the return is
+  // back-loaded into a steep, rare top tail.
+  rtp: 0.970,
+  // Single-payline ceiling: WILD 5x = 7415 line-bet units = 371× total bet
+  // (multi-line spins can stack higher).
+  theoreticalMaxWin: 371,
   platformMaxWin: 250000,
   symbols: [
-    { id: 'wild',    label: 'Wild',                 payouts: { 3: 103, 4: 516, 5: 2580 } },
-    { id: 'seven',   label: 'Seven',                payouts: { 3: 52,  4: 218, 5: 1032 } },
-    { id: 'bar',     label: 'Bar',                  payouts: { 3: 26,  4: 103, 5: 516  } },
-    { id: 'bell',    label: 'Bell',                 payouts: { 3: 17,  4: 65,  5: 258  } },
-    { id: 'cherry',  label: 'Cherry',               payouts: { 3: 10,  4: 44,  5: 159  } },
-    { id: 'plum',    label: 'Plum',                 payouts: { 3: 9,   4: 30,  5: 103  } },
-    { id: 'orange',  label: 'Orange',               payouts: { 3: 5,   4: 21,  5: 65   } },
-    { id: 'lemon',   label: 'Lemon',                payouts: { 3: 5,   4: 16,  5: 52   } },
+    { id: 'wild',    label: 'Wild',                 payouts: { 3: 116, 4: 799, 5: 7415 } },
+    { id: 'seven',   label: 'Seven',                payouts: { 3: 52,  4: 328, 5: 4277 } },
+    { id: 'bar',     label: 'Bar',                  payouts: { 3: 28,  4: 122, 5: 670  } },
+    { id: 'bell',    label: 'Bell',                 payouts: { 3: 17,  4: 67,  5: 309  } },
+    { id: 'plum',    label: 'Plum',                 payouts: { 3: 9,   4: 34,  5: 155  } },
+    { id: 'cherry',  label: 'Cherry',               payouts: { 3: 6,   4: 26,  5: 135  } },
+    { id: 'orange',  label: 'Orange',               payouts: { 3: 5,   4: 22,  5: 113  } },
+    { id: 'lemon',   label: 'Lemon',                payouts: { 3: 5,   4: 18,  5: 93   } },
     // Scatter pays no line credits — 3 Scatters anywhere awards 10 Free Spins.
     { id: 'scatter', label: 'Scatter (Free Spins)', payouts: {} },
   ],

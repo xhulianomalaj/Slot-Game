@@ -18,18 +18,22 @@ import type { SessionRequest, SessionResponse, SpinRequest, SpinResponse, Winlin
 import type { NetworkManager } from './types';
 
 // ─── Paytable ─────────────────────────────────────────────────────────────────
-// Multipliers × line bet. Mirrors the production Python engine paytable
-// (slot-backend/engine/paytable.py) — certified RTP ≈ 96.9%.
-// Scatter pays no line credits; it only triggers Free Spins.
+// Multipliers × line bet. "POPULAR-SLOT" LDW profile (experiment/high-volatility):
+// every symbol pays 3-/4-/5-of-a-kind, but low symbols pay TINY 3x (a sub-bet
+// "win" — bet 20 line-units, win ~6), so most wins are losses-disguised-as-wins.
+// The return is back-loaded into a steep top tail (rare Wild/Seven 4x/5x). Net:
+// ~97.0% RTP (exact-enumeration tuned), ~41% hit frequency, sigma/bet ~4.1
+// (MEDIUM). ~53% of all wins pay LESS than the bet. Scatter pays no line
+// credits; it only triggers Free Spins.
 const PAYOUTS: Record<string, Partial<Record<3 | 4 | 5, number>>> = {
-  wild:    { 3: 103, 4: 516, 5: 2580 },
-  seven:   { 3: 52,  4: 218, 5: 1032 },
-  bar:     { 3: 26,  4: 103, 5: 516  },
-  bell:    { 3: 17,  4: 65,  5: 258  },
-  cherry:  { 3: 10,  4: 44,  5: 159  },
-  plum:    { 3: 9,   4: 30,  5: 103  },
-  orange:  { 3: 5,   4: 21,  5: 65   },
-  lemon:   { 3: 5,   4: 16,  5: 52   },
+  wild:    { 3: 116, 4: 799, 5: 7415 },
+  seven:   { 3: 52,  4: 328, 5: 4277 },
+  bar:     { 3: 28,  4: 122, 5: 670  },
+  bell:    { 3: 17,  4: 67,  5: 309  },
+  plum:    { 3: 9,   4: 34,  5: 155  },
+  cherry:  { 3: 6,   4: 26,  5: 135  },
+  orange:  { 3: 5,   4: 22,  5: 113  },
+  lemon:   { 3: 5,   4: 18,  5: 93   },
 };
 
 const WILD    = 'wild';
@@ -75,19 +79,20 @@ const PAYLINES: ReadonlyArray<readonly [number, number, number, number, number]>
 // Strips are shuffled once per instance (session), then fixed — matching
 // how a real RGS freezes its reelset per game version.
 //
-// These mirror the certified Python engine exactly (slot-backend/engine/
-// reel_strips.py): 33 stops per reel with exactly ONE scatter each, so the
-// free-spin trigger is ~1 in 153 spins and total RTP ≈ 96.9% (5M-spin MC).
+// LDW tune: 33 stops/reel, ONE scatter each (free-spin trigger stays ~1 in 152),
+// and 1-2 wilds each so small wins land often (~41% hit frequency). The tiny
+// low-symbol 3x payouts (see PAYOUTS) make most of those wins sub-bet, giving
+// MEDIUM volatility (sigma/bet ~4.1) at ~97.0% RTP.
 const STRIP_WEIGHTS: ReadonlyArray<Record<string, number>> = [
-  // Reel 1 (33 stops, 1 scatter)
+  // Reel 1 (33 stops, 1 scatter, 1 wild)
   { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
-  // Reel 2 (33 stops, 1 scatter)
+  // Reel 2 (33 stops, 1 scatter, 2 wilds)
   { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
-  // Reel 3 — middle (33 stops, 1 scatter)
+  // Reel 3 — middle (33 stops, 1 scatter, 1 wild)
   { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
-  // Reel 4 (33 stops, 1 scatter)
+  // Reel 4 (33 stops, 1 scatter, 2 wilds)
   { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
-  // Reel 5 — fewest premiums, hardest to complete (33 stops, 1 scatter)
+  // Reel 5 — fewest premiums, hardest to complete (33 stops, 1 scatter, 1 wild)
   { cherry: 8, lemon: 7, orange: 5, plum: 4, bell: 3, bar: 3, seven: 1, wild: 1, scatter: 1 },
 ];
 

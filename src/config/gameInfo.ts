@@ -17,7 +17,7 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Symbol values',
-    body: 'The highest-paying symbol is the Wild (103×–2580× line bet) followed by Seven (52×–1032× line bet). Mid-range symbols are Bar, Bell, and Cherry. Lower-value symbols are Plum, Orange, and Lemon. Higher match counts (4 or 5 of a kind) pay significantly more than 3 of a kind. All multipliers in the paytable are expressed in units of line bet (= total bet ÷ 20).',
+    body: 'The highest-paying symbol is the Wild (116×–7415× line bet) followed by Seven (52×–4277× line bet). Mid-range symbols are Bar and Bell. Lower-value symbols are Plum, Cherry, Orange, and Lemon — their 3-of-a-kind pays only a little, so many wins are smaller than your bet. Higher match counts (4 or 5 of a kind) pay dramatically more than 3 of a kind. All multipliers in the paytable are expressed in units of line bet (= total bet ÷ 20).',
   },
   {
     title: 'Wild symbol',
@@ -33,7 +33,7 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Return to player (RTP)',
-    body: 'The certified theoretical Return to Player (RTP) is 96.9%, verified by a 5,000,000-spin Monte Carlo simulation against the production game engine. Volatility is classified as LOW: wins are frequent (hit frequency ≈ 42%) and the standard deviation of per-spin payout is approximately 2.6× the bet. In practice the largest single-round win is a few hundred times the bet (observed up to ~220×); the paytable\'s theoretical 2,580× ceiling needs an all-Wild grid, which the reel strips make impossible.',
+    body: 'The theoretical Return to Player (RTP) is ~97.0%. Volatility is MEDIUM (the standard deviation of per-spin payout is approximately 4.1× the bet). Wins land fairly often (hit frequency ≈ 41%), but most are small — over half pay less than your bet — so the balance tends to drift down between occasional larger wins. From time to time a 5×–20× win lands, and more rarely a big 100×+ win. The largest single-payline win is Wild 5-of-a-kind = 371× total bet; multi-line spins can stack higher.',
   },
   {
     title: 'Spin speed',
