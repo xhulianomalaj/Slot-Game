@@ -194,7 +194,10 @@ export function adaptReelSet(reelSet: ReelSet): ReelsEngine & Disposable {
       };
       reelSet.events.on('spin:reelLanded', onLanded);
 
-      reelSet.setResult(grid);
+      // pixi-reels 1.x takes ColumnTarget[] ({ visible }) — the legacy
+      // string[][] form was removed in 1.0.0. Grid is [reel][row], so each
+      // row-array maps straight onto one column's `visible`.
+      reelSet.setResult(grid.map((visible) => ({ visible })));
       await landedPromise;
       reelSet.events.off('spin:reelLanded', onLanded);
 

@@ -33,7 +33,7 @@ export const GAME_INFO: InfoBlock[] = [
   },
   {
     title: 'Return to player (RTP)',
-    body: 'The certified theoretical Return to Player (RTP) is 96.5%, verified by a 1,000,000-spin Monte Carlo simulation against the production game engine. Volatility is classified as LOW: wins are frequent (hit frequency ≈ 41%) and the standard deviation of per-spin payout is approximately 2.7× the bet. Maximum win in a single round is capped at 2,580× total bet.',
+    body: 'The certified theoretical Return to Player (RTP) is 96.9%, verified by a 5,000,000-spin Monte Carlo simulation against the production game engine. Volatility is classified as LOW: wins are frequent (hit frequency ≈ 42%) and the standard deviation of per-spin payout is approximately 2.6× the bet. In practice the largest single-round win is a few hundred times the bet (observed up to ~220×); the paytable\'s theoretical 2,580× ceiling needs an all-Wild grid, which the reel strips make impossible.',
   },
   {
     title: 'Spin speed',

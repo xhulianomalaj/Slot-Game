@@ -19,7 +19,7 @@ import type { NetworkManager } from './types';
 
 // ─── Paytable ─────────────────────────────────────────────────────────────────
 // Multipliers × line bet. Mirrors the production Python engine paytable
-// (slot-backend/engine/paytable.py) — certified RTP ≈ 96.5%.
+// (slot-backend/engine/paytable.py) — certified RTP ≈ 96.9%.
 // Scatter pays no line credits; it only triggers Free Spins.
 const PAYOUTS: Record<string, Partial<Record<3 | 4 | 5, number>>> = {
   wild:    { 3: 103, 4: 516, 5: 2580 },
@@ -75,19 +75,20 @@ const PAYLINES: ReadonlyArray<readonly [number, number, number, number, number]>
 // Strips are shuffled once per instance (session), then fixed — matching
 // how a real RGS freezes its reelset per game version.
 //
-// RTP target: ~94–96% (approximated; a certified server must prove this
-// mathematically — the mock just needs to feel right visually).
+// These mirror the certified Python engine exactly (slot-backend/engine/
+// reel_strips.py): 33 stops per reel with exactly ONE scatter each, so the
+// free-spin trigger is ~1 in 153 spins and total RTP ≈ 96.9% (5M-spin MC).
 const STRIP_WEIGHTS: ReadonlyArray<Record<string, number>> = [
-  // Reel 1 — outer reels have more low-value symbols
-  { cherry: 8, lemon: 7, orange: 6, plum: 5, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 2 },
-  // Reel 2
-  { cherry: 7, lemon: 7, orange: 6, plum: 5, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 2 },
-  // Reel 3 — middle reel: one extra scatter for more frequent near-misses
-  { cherry: 7, lemon: 6, orange: 5, plum: 5, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 3 },
-  // Reel 4
-  { cherry: 8, lemon: 7, orange: 6, plum: 5, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 2 },
-  // Reel 5 — last reel hardest to complete lines
-  { cherry: 9, lemon: 8, orange: 6, plum: 5, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 2 },
+  // Reel 1 (33 stops, 1 scatter)
+  { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
+  // Reel 2 (33 stops, 1 scatter)
+  { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
+  // Reel 3 — middle (33 stops, 1 scatter)
+  { cherry: 7, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 1, scatter: 1 },
+  // Reel 4 (33 stops, 1 scatter)
+  { cherry: 6, lemon: 6, orange: 5, plum: 4, bell: 4, bar: 3, seven: 2, wild: 2, scatter: 1 },
+  // Reel 5 — fewest premiums, hardest to complete (33 stops, 1 scatter)
+  { cherry: 8, lemon: 7, orange: 5, plum: 4, bell: 3, bar: 3, seven: 1, wild: 1, scatter: 1 },
 ];
 
 function buildStrip(weights: Record<string, number>): string[] {
@@ -115,30 +116,57 @@ function evaluatePayline(
   // Read the symbol at each reel for this payline
   const symbols = payline.map((row, reel) => grid[reel]![row]!);
 
-  // Base symbol = first non-wild, non-scatter left-to-right.
-  // All-wild line pays as wild. Scatter never contributes to paylines.
-  const base = symbols.find((s) => s !== WILD && s !== SCATTER) ?? (symbols[0] === WILD ? WILD : null);
-  if (!base) return null;
+  // A line pays the BETTER of two candidate combinations (standard slot rule,
+  // mirrors slot-backend/engine/evaluator.py):
+  //   1. Substituted win — first non-wild/scatter symbol, wilds extend the run.
+  //   2. Pure-wild prefix — leading wilds paying as WILD in their own right.
+  let bestSymbol: string | null = null;
+  let bestCount = 0;
+  let bestMultiplier = 0;
 
-  // Wilds extend the run from the left
-  let count = 0;
+  // Candidate 1 — substituted symbol.
+  const base = symbols.find((s) => s !== WILD && s !== SCATTER);
+  if (base) {
+    let count = 0;
+    for (const s of symbols) {
+      if (s === base || s === WILD) count++;
+      else break;
+    }
+    if (count >= 3) {
+      const m = PAYOUTS[base]?.[Math.min(count, 5) as 3 | 4 | 5];
+      if (m && m > bestMultiplier) {
+        bestSymbol = base;
+        bestCount = Math.min(count, 5);
+        bestMultiplier = m;
+      }
+    }
+  }
+
+  // Candidate 2 — pure-wild prefix (also covers an all-wild line).
+  let wildCount = 0;
   for (const s of symbols) {
-    if (s === base || s === WILD) count++;
+    if (s === WILD) wildCount++;
     else break;
   }
-  if (count < 3) return null;
+  if (wildCount >= 3) {
+    const m = PAYOUTS[WILD]?.[Math.min(wildCount, 5) as 3 | 4 | 5];
+    if (m && m > bestMultiplier) {
+      bestSymbol = WILD;
+      bestCount = Math.min(wildCount, 5);
+      bestMultiplier = m;
+    }
+  }
 
-  const matchCount = Math.min(count, 5) as 3 | 4 | 5;
-  const multiplier = PAYOUTS[base]?.[matchCount];
-  if (!multiplier) return null;
+  if (!bestSymbol || bestCount < 3) return null;
 
-  const amount = r2(lineBet * multiplier);
+  const matchCount = bestCount as 3 | 4 | 5;
+  const amount = r2(lineBet * bestMultiplier);
   const positions = Array.from({ length: matchCount }, (_, reel) => ({
     reel,
     row: payline[reel]!,
   }));
 
-  return { lineId, symbolId: base, matchCount, amount, positions };
+  return { lineId, symbolId: bestSymbol, matchCount, amount, positions };
 }
 
 function findScatterPositions(grid: string[][]): Array<{ reel: number; row: number }> {
@@ -306,7 +334,7 @@ export class MockNetworkManager implements NetworkManager {
   async buyBonus(req: SpinRequest): Promise<SpinResponse> {
     // Debit the buy cost from the server's authoritative balance, then build
     // a guaranteed 3-scatter grid by forcing scatter on reels 0, 2, 4.
-    this.balance = r2(this.balance - r2(req.bet * 80)); // 80 = BUY_BONUS_MULTIPLIER
+    this.balance = r2(this.balance - r2(req.bet * 10)); // 10 = BUY_BONUS_MULTIPLIER (fair value)
     const grid: string[][] = this.reelStrips.map((strip, reel) => {
       if (reel === 0 || reel === 2 || reel === 4) {
         // Force scatter into row 1 (middle) for this reel

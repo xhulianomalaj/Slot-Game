@@ -27,13 +27,14 @@ export interface PaytableConfig {
 
 export const PAYTABLE: PaytableConfig = {
   lines: '20',
-  // Certified by 1M-spin Monte Carlo simulation against the production engine.
-  rtp: 0.9650,
-  // Theoretical max: all 15 cells wild → all 20 paylines pay WILD 5-of-a-kind.
-  // Line bet = total bet / 20  →  2580 × (total bet / 20) × 20 lines = 2580× total bet.
-  // (Reel-strip composition makes this combinatorially unreachable in a single
-  // spin; observed max from 1M-spin certification was ~183× total bet.)
-  theoreticalMaxWin: 2580,
+  // Certified ~96.9% by 5M-spin Monte Carlo against the production engine
+  // (per-session reel shuffle gives ~±0.1% spread; see slot-backend/MATH_MODEL.md).
+  rtp: 0.969,
+  // Realistic max win. The paytable's combinatorial ceiling is 2580× total bet
+  // (all 15 cells WILD → 20 lines × WILD 5x), but it is UNREACHABLE: reels 0/2/4
+  // carry only one WILD each, so a 3-cell window can never show three wilds.
+  // Observed ceiling across multi-million-spin certification runs is ~175–220×.
+  theoreticalMaxWin: 220,
   platformMaxWin: 250000,
   symbols: [
     { id: 'wild',    label: 'Wild',                 payouts: { 3: 103, 4: 516, 5: 2580 } },
