@@ -289,7 +289,7 @@ export class MockNetworkManager implements NetworkManager {
   async buyBonus(req: SpinRequest): Promise<SpinResponse> {
     // Debit the buy cost from the server's authoritative balance, then build
     // a guaranteed 3-scatter grid by forcing scatter on reels 0, 2, 4.
-    this.balance = r2(this.balance - r2(req.bet * 80)); // 80 = BUY_BONUS_MULTIPLIER
+    this.balance = r2(this.balance - r2(req.bet * 10)); // 10 = BUY_BONUS_MULTIPLIER (fair value)
     const grid: string[][] = this.reelStrips.map((strip, reel) => {
       if (reel === 0 || reel === 2 || reel === 4) {
         // Force scatter into row 1 (middle) for this reel

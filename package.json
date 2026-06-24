@@ -36,7 +36,7 @@
     "i18next-browser-languagedetector": "^8.0.0",
     "mobx": "^6.13.0",
     "mobx-react-lite": "^4.1.0",
-    "pixi-reels": "^0.7.0",
+    "pixi-reels": "^1.1.0",
     "pixi.js": "^8.11.0",
     "preact": "^10.26.0"
   },

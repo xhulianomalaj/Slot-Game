@@ -134,7 +134,7 @@ export class MainScene implements Disposable {
     // pixi-reels canonical wiring — fluent builder from the README.
     const reelSet = new ReelSetBuilder()
       .reels(GAME.columns)
-      .visibleSymbols(GAME.rows)
+      .visibleRows(GAME.rows)
       .symbolSize(CELL_SIZE, CELL_SIZE)
       .symbolGap(SYMBOL_GAP, SYMBOL_GAP)
       .symbols((registry) => {

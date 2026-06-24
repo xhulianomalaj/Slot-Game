@@ -7,8 +7,13 @@ import type { Phase, PhaseContext } from '../Phase';
 // This phase: debits the buy cost, calls network.buyBonus(), populates
 // DataStore, plays a cinematic scatter reveal, then hands off to freeSpinsIntro.
 
-/** Cost multiplier: bonus buy = BUY_BONUS_MULTIPLIER × the current bet. */
-export const BUY_BONUS_MULTIPLIER = 80;
+/**
+ * Cost multiplier: bonus buy = BUY_BONUS_MULTIPLIER × the current bet.
+ * Priced at the feature's fair value (~10× bet for ~10 free spins) so the bonus
+ * buy carries the same RTP as the base game. MUST match the server's
+ * BUY_BONUS_MULTIPLIER in slot-backend/api/routes.py.
+ */
+export const BUY_BONUS_MULTIPLIER = 10;
 
 /** Regular symbols used to fill non-scatter cells in the reveal grid. */
 const FILL_SYMBOLS = ['cherry', 'lemon', 'orange', 'plum', 'bell', 'bar', 'seven'] as const;
